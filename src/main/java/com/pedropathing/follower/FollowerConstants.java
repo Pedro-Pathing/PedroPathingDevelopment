@@ -324,4 +324,14 @@ public class FollowerConstants {
 
     /** A Value solely used to debug the constantsUser */
     public static double constantsDebug = 0;
+
+    /** Use voltage compensation to linearly scale motor powers
+     *  Requires fully re-tuning if you set it to true
+     *  Default Value: false */
+    public static boolean useVoltageCompensation = false;
+
+    /** The voltage to scale to (the voltage that you tuned at)
+     *  If the robot's voltage is at the default value, it will not affect the motor powers
+     *  Default Value: 12.0 */
+    public static double nominalVoltage = 12.0;
 }

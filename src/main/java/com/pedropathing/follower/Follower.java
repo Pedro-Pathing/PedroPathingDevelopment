@@ -9,6 +9,7 @@ import static com.pedropathing.follower.FollowerConstants.headingPIDFSwitch;
 import static com.pedropathing.follower.FollowerConstants.lateralZeroPowerAcceleration;
 import static com.pedropathing.follower.FollowerConstants.leftFrontMotorName;
 import static com.pedropathing.follower.FollowerConstants.leftRearMotorName;
+import static com.pedropathing.follower.FollowerConstants.nominalVoltage;
 import static com.pedropathing.follower.FollowerConstants.rightFrontMotorName;
 import static com.pedropathing.follower.FollowerConstants.rightRearMotorName;
 import static com.pedropathing.follower.FollowerConstants.leftFrontMotorDirection;
@@ -23,6 +24,7 @@ import static com.pedropathing.follower.FollowerConstants.translationalPIDFSwitc
 import static com.pedropathing.follower.FollowerConstants.useSecondaryDrivePID;
 import static com.pedropathing.follower.FollowerConstants.useSecondaryHeadingPID;
 import static com.pedropathing.follower.FollowerConstants.useSecondaryTranslationalPID;
+import static com.pedropathing.follower.FollowerConstants.useVoltageCompensation;
 
 import android.util.Log;
 
@@ -155,10 +157,8 @@ public class Follower {
      * Credit to team 14343 Escape Velocity for the voltage code
      * Credit to team 23511 Seattle Solvers for implementing the voltage code into Follower.java
      */
-    public static boolean useVoltageCompensation = false;
     private static int voltageIndex = 0;
     private boolean cached = false;
-    public static double nominalVoltage = 12.0;
     private static double cacheInvalidateSeconds = 0.5;
 
     private VoltageSensor voltageSensor;
