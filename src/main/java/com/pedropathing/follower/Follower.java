@@ -25,7 +25,8 @@ import static com.pedropathing.follower.FollowerConstants.translationalPIDFSwitc
 import static com.pedropathing.follower.FollowerConstants.useSecondaryDrivePID;
 import static com.pedropathing.follower.FollowerConstants.useSecondaryHeadingPID;
 import static com.pedropathing.follower.FollowerConstants.useSecondaryTranslationalPID;
-import static com.pedropathing.follower.FollowerConstants.useVoltageCompensation;
+import static com.pedropathing.follower.FollowerConstants.useVoltageCompensationInAuto;
+import static com.pedropathing.follower.FollowerConstants.useVoltageCompensationInTeleOp;
 
 import android.util.Log;
 
@@ -571,7 +572,7 @@ public class Follower {
                         if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
                             double voltageNormalized = getVoltageNormalized();
 
-                            if (useVoltageCompensation) {
+                            if (useVoltageCompensationInAuto) {
                                 motors.get(i).setPower(drivePowers[i] * voltageNormalized);
                             } else {
                                 motors.get(i).setPower(drivePowers[i]);
@@ -590,7 +591,7 @@ public class Follower {
                             if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
                                 double voltageNormalized = getVoltageNormalized();
 
-                                if (useVoltageCompensation) {
+                                if (useVoltageCompensationInAuto) {
                                     motors.get(i).setPower(drivePowers[i] * voltageNormalized);
                                 } else {
                                     motors.get(i).setPower(drivePowers[i]);
@@ -667,7 +668,7 @@ public class Follower {
                 if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
                     double voltageNormalized = getVoltageNormalized();
 
-                    if (useVoltageCompensation) {
+                    if (useVoltageCompensationInTeleOp) {
                         motors.get(i).setPower(drivePowers[i] * voltageNormalized);
                     } else {
                         motors.get(i).setPower(drivePowers[i]);
