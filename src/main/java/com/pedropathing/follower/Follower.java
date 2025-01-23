@@ -153,7 +153,7 @@ public class Follower {
     /*
      * Voltage Compensation
      * Credit to team 14343 Escape Velocity for the voltage code
-     * Credit to team 23511 Seattle Solver for implementing the voltage code into Follower.java
+     * Credit to team 23511 Seattle Solvers for implementing the voltage code into Follower.java
      */
     public static boolean setUseVoltageCompensation = false;
     private static int voltageIndex = 0;
