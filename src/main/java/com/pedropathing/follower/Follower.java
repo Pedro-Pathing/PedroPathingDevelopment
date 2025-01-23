@@ -158,7 +158,7 @@ public class Follower {
     public static boolean setUseVoltageCompensation = false;
     private static int voltageIndex = 0;
     private boolean cached = false;
-    private static double nominalVoltage = 12.0;
+    public static double nominalVoltage = 12.0;
     private static double cacheInvalidateSeconds = 0.5;
 
     private VoltageSensor voltageSensor;
