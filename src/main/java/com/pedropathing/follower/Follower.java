@@ -9,7 +9,6 @@ import static com.pedropathing.follower.FollowerConstants.headingPIDFSwitch;
 import static com.pedropathing.follower.FollowerConstants.lateralZeroPowerAcceleration;
 import static com.pedropathing.follower.FollowerConstants.leftFrontMotorName;
 import static com.pedropathing.follower.FollowerConstants.leftRearMotorName;
-import static com.pedropathing.follower.FollowerConstants.localizers;
 import static com.pedropathing.follower.FollowerConstants.rightFrontMotorName;
 import static com.pedropathing.follower.FollowerConstants.rightRearMotorName;
 import static com.pedropathing.follower.FollowerConstants.leftFrontMotorDirection;
@@ -31,8 +30,8 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -151,6 +150,21 @@ public class Follower {
     public static boolean useHeading = true;
     public static boolean useDrive = true;
 
+    /*
+     * Voltage Compensation
+     * Credit to team 14343 Escape Velocity for the voltage code
+     * Credit to team 23511 Seattle Solver for implementing the voltage code into Follower.java
+     */
+    public static boolean setUseVoltageCompensation = false;
+    private static int voltageIndex = 0;
+    private boolean cached = false;
+    private static double nominalVoltage = 12.0;
+    private static double cacheInvalidateSeconds = 0.5;
+
+    private VoltageSensor voltageSensor;
+    public double voltage = 0;
+    private final ElapsedTime voltageTimer = new ElapsedTime();
+
     private boolean logDebug = true;
 
     private ElapsedTime zeroVelocityDetectedTimer;
@@ -184,6 +198,9 @@ public class Follower {
     public void initialize() {
         poseUpdater = new PoseUpdater(hardwareMap);
         driveVectorScaler = new DriveVectorScaler(FollowerConstants.frontLeftVector);
+
+        voltageSensor = hardwareMap.getAll(VoltageSensor.class).get(voltageIndex);
+        voltageTimer.reset();
 
         leftFront = hardwareMap.get(DcMotorEx.class, leftFrontMotorName);
         leftRear = hardwareMap.get(DcMotorEx.class, leftRearMotorName);
@@ -552,7 +569,13 @@ public class Follower {
 
                     for (int i = 0; i < motors.size(); i++) {
                         if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
-                            motors.get(i).setPower(drivePowers[i]);
+                            double voltageNormalized = getVoltageNormalized();
+
+                            if (setUseVoltageCompensation) {
+                                motors.get(i).setPower(drivePowers[i] * voltageNormalized);
+                            } else {
+                                motors.get(i).setPower(drivePowers[i]);
+                            }
                         }
                     }
                 } else {
@@ -565,7 +588,13 @@ public class Follower {
 
                         for (int i = 0; i < motors.size(); i++) {
                             if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
-                                motors.get(i).setPower(drivePowers[i]);
+                                double voltageNormalized = getVoltageNormalized();
+
+                                if (setUseVoltageCompensation) {
+                                    motors.get(i).setPower(drivePowers[i] * voltageNormalized);
+                                } else {
+                                    motors.get(i).setPower(drivePowers[i]);
+                                }
                             }
                         }
                     }
@@ -636,7 +665,13 @@ public class Follower {
 
             for (int i = 0; i < motors.size(); i++) {
                 if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
-                    motors.get(i).setPower(drivePowers[i]);
+                    double voltageNormalized = getVoltageNormalized();
+
+                    if (setUseVoltageCompensation) {
+                        motors.get(i).setPower(drivePowers[i] * voltageNormalized);
+                    } else {
+                        motors.get(i).setPower(drivePowers[i]);
+                    }
                 }
             }
         }
@@ -1170,5 +1205,35 @@ public class Follower {
 
     public boolean isPinpointCooked() {
         return poseUpdater.getLocalizer().isPinpointCooked();
+    }
+
+    /**
+     * @return The last cached voltage measurement.
+     */
+    public double getVoltage() {
+        if (voltageTimer.seconds() > cacheInvalidateSeconds && cacheInvalidateSeconds >= 0) {
+            clearCache();
+        }
+
+        if (!cached) {
+            cached = true;
+            return voltage = voltageSensor.getVoltage();
+        } else {
+            return voltage;
+        }
+    }
+
+    /**
+     * @return A scalar that normalizes power outputs to the nominal voltage from the current voltage.
+     */
+    public double getVoltageNormalized() {
+        return nominalVoltage / getVoltage();
+    }
+
+    /**
+     * Forcibly invalidates the cache.
+     */
+    public void clearCache() {
+        cached = false;
     }
 }
