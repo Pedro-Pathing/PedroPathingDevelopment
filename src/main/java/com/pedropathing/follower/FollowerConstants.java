@@ -334,4 +334,9 @@ public class FollowerConstants {
      *  If the robot's voltage is at the default value, it will not affect the motor powers
      *  Default Value: 12.0 */
     public static double nominalVoltage = 12.0;
+
+    /** Time (in seconds) before reading voltage again
+     *  Will only read voltage if useVoltageCompensation is true
+     *  Default Value: 0.5 */
+    public static double cacheInvalidateSeconds = 0.5;
 }

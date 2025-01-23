@@ -1,6 +1,7 @@
 
 package com.pedropathing.follower;
 
+import static com.pedropathing.follower.FollowerConstants.cacheInvalidateSeconds;
 import static com.pedropathing.follower.FollowerConstants.drivePIDFFeedForward;
 import static com.pedropathing.follower.FollowerConstants.drivePIDFSwitch;
 import static com.pedropathing.follower.FollowerConstants.forwardZeroPowerAcceleration;
@@ -159,7 +160,6 @@ public class Follower {
      */
     private static int voltageIndex = 0;
     private boolean cached = false;
-    private static double cacheInvalidateSeconds = 0.5;
 
     private VoltageSensor voltageSensor;
     public double voltage = 0;
