@@ -1233,7 +1233,7 @@ public class Follower {
     /**
      * Forcibly invalidates the cache.
      */
-    public void clearCache() {
+    private void clearCache() {
         cached = false;
     }
 }
