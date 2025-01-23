@@ -155,7 +155,7 @@ public class Follower {
      * Credit to team 14343 Escape Velocity for the voltage code
      * Credit to team 23511 Seattle Solvers for implementing the voltage code into Follower.java
      */
-    public static boolean setUseVoltageCompensation = false;
+    public static boolean useVoltageCompensation = false;
     private static int voltageIndex = 0;
     private boolean cached = false;
     public static double nominalVoltage = 12.0;
@@ -571,7 +571,7 @@ public class Follower {
                         if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
                             double voltageNormalized = getVoltageNormalized();
 
-                            if (setUseVoltageCompensation) {
+                            if (useVoltageCompensation) {
                                 motors.get(i).setPower(drivePowers[i] * voltageNormalized);
                             } else {
                                 motors.get(i).setPower(drivePowers[i]);
@@ -590,7 +590,7 @@ public class Follower {
                             if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
                                 double voltageNormalized = getVoltageNormalized();
 
-                                if (setUseVoltageCompensation) {
+                                if (useVoltageCompensation) {
                                     motors.get(i).setPower(drivePowers[i] * voltageNormalized);
                                 } else {
                                     motors.get(i).setPower(drivePowers[i]);
@@ -667,7 +667,7 @@ public class Follower {
                 if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
                     double voltageNormalized = getVoltageNormalized();
 
-                    if (setUseVoltageCompensation) {
+                    if (useVoltageCompensation) {
                         motors.get(i).setPower(drivePowers[i] * voltageNormalized);
                     } else {
                         motors.get(i).setPower(drivePowers[i]);
