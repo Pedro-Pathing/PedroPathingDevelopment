@@ -33,6 +33,8 @@ import android.util.Log;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.util.Constants;
+import com.pedropathing.util.CustomFilteredPIDFCoefficients;
+import com.pedropathing.util.CustomPIDFCoefficients;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -1340,6 +1342,66 @@ public class Follower {
 
     public boolean isTurning() {
         return isTurning;
+    }
+
+    /**
+     * This will update the PIDF coefficients for primary Heading PIDF mid run
+     * can be used between paths
+     *
+     * @param set PIDF coefficients you would like to set.
+     */
+    public void setHeadingPIDF(CustomPIDFCoefficients set){
+        headingPIDF.setCoefficients(set);
+    }
+
+    /**
+     * This will update the PIDF coefficients for primary Translational PIDF mid run
+     * can be used between paths
+     *
+     * @param set PIDF coefficients you would like to set.
+     */
+    public void setTranslationalPIDF(CustomPIDFCoefficients set){
+        translationalPIDF.setCoefficients(set);
+    }
+
+    /**
+     * This will update the PIDF coefficients for primary Drive PIDF mid run
+     * can be used between paths
+     *
+     * @param set PIDF coefficients you would like to set.
+     */
+    public void setDrivePIDF(CustomFilteredPIDFCoefficients set){
+        drivePIDF.setCoefficients(set);
+    }
+
+    /**
+     * This will update the PIDF coefficients for secondary Heading PIDF mid run
+     * can be used between paths
+     *
+     * @param set PIDF coefficients you would like to set.
+     */
+    public void setSecondaryHeadingPIDF(CustomPIDFCoefficients set){
+        secondaryHeadingPIDF.setCoefficients(set);
+    }
+
+    /**
+     * This will update the PIDF coefficients for secondary Translational PIDF mid run
+     * can be used between paths
+     *
+     * @param set PIDF coefficients you would like to set.
+     */
+    public void setSecondaryTranslationalPIDF(CustomPIDFCoefficients set){
+        secondaryTranslationalPIDF.setCoefficients(set);
+    }
+
+    /**
+     * This will update the PIDF coefficients for secondary Drive PIDF mid run
+     * can be used between paths
+     *
+     * @param set PIDF coefficients you would like to set.
+     */
+    public void setSecondaryDrivePIDF(CustomFilteredPIDFCoefficients set){
+        secondaryDrivePIDF.setCoefficients(set);
     }
 
     /**
