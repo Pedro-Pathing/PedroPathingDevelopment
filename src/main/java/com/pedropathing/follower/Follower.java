@@ -1326,4 +1326,8 @@ public class Follower {
     public void turnDegrees(double degrees, boolean isLeft) {
         turn(Math.toRadians(degrees), isLeft);
     }
+
+    public double getHeadingError() {
+        return headingError;
+    }
 }

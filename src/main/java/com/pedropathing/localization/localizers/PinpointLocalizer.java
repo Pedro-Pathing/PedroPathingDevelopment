@@ -1,6 +1,7 @@
 package com.pedropathing.localization.localizers;
 
 
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import static com.pedropathing.localization.constants.PinpointConstants.*;
 
@@ -254,15 +255,34 @@ public class PinpointLocalizer extends Localizer {
     }
 
     private Pose getPoseEstimate(Pose2D pinpointEstimate, Pose currentPose, long deltaTime) {
-        if (Double.isNaN(pinpointEstimate.getX(DistanceUnit.INCH)) || Double.isNaN(pinpointEstimate.getY(DistanceUnit.INCH)) || Double.isNaN(pinpointEstimate.getHeading(AngleUnit.RADIANS))) {
-            pinpointCooked = true;
-            return MathFunctions.addPoses(currentPose, new Pose(currentVelocity.getX() * deltaTime / Math.pow(10, 9), currentVelocity.getY() * deltaTime / Math.pow(10, 9), currentVelocity.getHeading() * deltaTime / Math.pow(10, 9)));
-        }
-
-        Pose estimate = new Pose(pinpointEstimate.getX(DistanceUnit.INCH), pinpointEstimate.getY(DistanceUnit.INCH), pinpointEstimate.getHeading(AngleUnit.RADIANS));
+        double x;
+        double y;
+        double heading;
 
         pinpointCooked = false;
-        return estimate;
+
+        if (!Double.isNaN(pinpointEstimate.getX(DistanceUnit.INCH))) {
+            x = pinpointEstimate.getX(DistanceUnit.INCH);
+        } else {
+            x = currentPose.getX() + currentVelocity.getX() * deltaTime / Math.pow(10, 9);
+            pinpointCooked = true;
+        }
+
+        if (!Double.isNaN(pinpointEstimate.getY(DistanceUnit.INCH))) {
+            y = pinpointEstimate.getY(DistanceUnit.INCH);
+        } else {
+            y = currentPose.getY() + currentVelocity.getY() * deltaTime / Math.pow(10, 9);
+            pinpointCooked = true;
+        }
+
+        if (!Double.isNaN(pinpointEstimate.getHeading(AngleUnit.RADIANS))) {
+            heading = pinpointEstimate.getHeading(AngleUnit.RADIANS);
+        } else {
+            heading = currentPose.getHeading() + currentVelocity.getHeading() * deltaTime / Math.pow(10, 9);
+            pinpointCooked = true;
+        }
+
+        return new Pose(x, y, heading);
     }
 
     /**
