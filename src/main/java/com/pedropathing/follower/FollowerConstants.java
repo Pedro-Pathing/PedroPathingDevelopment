@@ -350,4 +350,18 @@ public class FollowerConstants {
      *  In Radians
      *  Default Value: 0.01 */
     public static double turnHeadingErrorThreshold = 0.01;
+
+    /**
+     * In Radians
+     * Minimum amount of heading error needed for correction to start
+     * Will only be used when driving and not during path end correction
+     */
+    public static double headingMinCorrectionError = 0;
+
+    /**
+     * In Inches
+     * Minimum amount of translational error needed for correction to start
+     * Will only be used when driving and not during path end correction
+     */
+    public static double translationalMinCorrectionError = 0;
 }

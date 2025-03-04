@@ -236,6 +236,16 @@ public class PathBuilder {
         return this;
     }
 
+    public PathBuilder addMinimumHeadingCorrectionError(double minError) {
+        this.paths.get(paths.size() - 1).setPathHeadingMinCorrectiveError(minError);
+        return this;
+    }
+
+    public PathBuilder addMinimumTranslationalCorrectionError(double minError) {
+        this.paths.get(paths.size() - 1).setPathTranslationalMinCorrectiveError(minError);;
+        return this;
+    }
+
     /**
      * This builds all the Path and callback information together into a PathChain.
      *

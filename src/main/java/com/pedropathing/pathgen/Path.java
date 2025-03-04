@@ -64,6 +64,9 @@ public class Path {
     // This can be custom set for each Path.
     private double pathEndTimeoutConstraint = FollowerConstants.pathEndTimeoutConstraint;
 
+    private double pathHeadingMinCorrectiveError = FollowerConstants.headingMinCorrectionError;
+    private double pathTranslationalMinCorrectiveError = FollowerConstants.translationalMinCorrectionError;
+
     /**
      * Creates a new Path from a BezierCurve. The default heading interpolation is tangential.
      *
@@ -500,5 +503,21 @@ public class Path {
      */
     public double[][] getDashboardDrawingPoints() {
         return curve.getDashboardDrawingPoints();
+    }
+
+    public void setPathHeadingMinCorrectiveError(double pathHeadingMinCorrectiveError) {
+        this.pathHeadingMinCorrectiveError = pathHeadingMinCorrectiveError;
+    }
+
+    public void setPathTranslationalMinCorrectiveError(double pathTranslationalMinCorrectiveError) {
+        this.pathTranslationalMinCorrectiveError = pathTranslationalMinCorrectiveError;
+    }
+
+    public double getPathHeadingMinCorrectiveError() {
+        return pathHeadingMinCorrectiveError;
+    }
+
+    public double getPathTranslationalMinCorrectiveError() {
+        return pathTranslationalMinCorrectiveError;
     }
 }

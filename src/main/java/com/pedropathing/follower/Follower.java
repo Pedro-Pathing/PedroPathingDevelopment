@@ -982,6 +982,8 @@ public class Follower {
     public Vector getHeadingVector() {
         if (!useHeading) return new Vector();
         headingError = MathFunctions.getTurnDirection(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal()) * MathFunctions.getSmallestAngleDifference(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal());
+        if (!holdingPosition && headingError < currentPath.getPathHeadingMinCorrectiveError()) return new Vector();
+
         if (Math.abs(headingError) < headingPIDFSwitch && useSecondaryHeadingPID) {
 //            if(logDebug) {
 //                Log.d("Follower_logger", "using secondary heading PIDF controller, error: "
@@ -1033,6 +1035,8 @@ public class Follower {
         double x = closestPose.getX() - poseUpdater.getPose().getX();
         double y = closestPose.getY() - poseUpdater.getPose().getY();
         translationalVector.setOrthogonalComponents(x, y);
+
+        if (!holdingPosition && translationalVector.getMagnitude() < currentPath.getPathTranslationalMinCorrectiveError()) return new Vector();
 
         if (!(currentPath.isAtParametricEnd() || currentPath.isAtParametricStart())) {
             translationalVector = MathFunctions.subtractVectors(translationalVector, new Vector(MathFunctions.dotProduct(translationalVector, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), currentPath.getClosestPointTangentVector().getTheta()));
