@@ -63,6 +63,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * This is the Follower class. It handles the actual following of the paths and all the on-the-fly
@@ -91,6 +92,7 @@ public class Follower {
     private Pose closestPose;
 
     private Path currentPath;
+    private Path lastPath;
 
     private PathChain currentPathChain;
 
@@ -833,6 +835,7 @@ public class Follower {
      * This resets the PIDFs and stops following the current Path.
      */
     public void breakFollowing() {
+        if (currentPath != null) lastPath = currentPath;
         teleopDrive = false;
         setMotorsToFloat();
         holdingPosition = false;
@@ -1222,6 +1225,15 @@ public class Follower {
      */
     public Path getCurrentPath() {
         return currentPath;
+    }
+
+    /**
+     * This returns the last Path that the Follower was following. This can be null.
+     *
+     * @return returns the last Path.
+     */
+    public Path getLastPath() {
+        return lastPath;
     }
 
     /**
