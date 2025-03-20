@@ -2,6 +2,7 @@ package com.pedropathing.pathgen;
 
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.localization.Pose;
+import java.util.UUID;
 
 import java.util.ArrayList;
 
@@ -16,6 +17,8 @@ import java.util.ArrayList;
  * @version 1.0, 3/10/2024
  */
 public class Path {
+    private final UUID id;
+
     private final BezierCurve curve;
 
     private double startHeading;
@@ -71,6 +74,7 @@ public class Path {
      */
     public Path(BezierCurve curve) {
         this.curve = curve;
+        this.id = UUID.randomUUID();
     }
 
     /**
@@ -500,5 +504,14 @@ public class Path {
      */
     public double[][] getDashboardDrawingPoints() {
         return curve.getDashboardDrawingPoints();
+    }
+
+    /**
+     * Returns the unique identifier (UUID) of this path.
+     *
+     * @return the UUID of the path
+     */
+    public UUID getId() {
+        return id;
     }
 }
