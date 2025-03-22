@@ -2,7 +2,7 @@ package com.pedropathing.pathgen;
 
 import androidx.annotation.NonNull;
 
-import com.pedropathing.localization.Pose;
+import com.pedropathing.util.MathFunctions;
 
 /**
  * This is the Point class. This class handles storing information about the location of points in

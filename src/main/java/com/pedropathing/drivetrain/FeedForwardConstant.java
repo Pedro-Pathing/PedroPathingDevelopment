@@ -1,4 +1,4 @@
-package com.pedropathing.util;
+package com.pedropathing.drivetrain;
 
 /**
  * This is the FeedForwardConstant interface. This interface holds a feedforward equation for PIDFs.

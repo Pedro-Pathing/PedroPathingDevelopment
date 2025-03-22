@@ -1,18 +1,19 @@
 package com.pedropathing.localization;
-import static com.pedropathing.follower.FollowerConstants.localizers;
+import static com.pedropathing.drivetrain.FollowerConstants.localizers;
 
-import com.pedropathing.util.Constants;
+import com.pedropathing.localization.localizers.TwoWheel;
+import com.pedropathing.pathgen.Pose;
+import com.pedropathing.drivetrain.Constants;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import com.pedropathing.localization.localizers.DriveEncoderLocalizer;
-import com.pedropathing.localization.localizers.OTOSLocalizer;
-import com.pedropathing.localization.localizers.PinpointLocalizer;
-import com.pedropathing.localization.localizers.ThreeWheelIMULocalizer;
-import com.pedropathing.localization.localizers.ThreeWheelLocalizer;
-import com.pedropathing.localization.localizers.TwoWheelLocalizer;
-import com.pedropathing.pathgen.MathFunctions;
-import com.pedropathing.pathgen.Vector;
+import com.pedropathing.localization.localizers.DriveEncoder;
+import com.pedropathing.localization.localizers.OTOS;
+import com.pedropathing.localization.localizers.Pinpoint;
+import com.pedropathing.localization.localizers.ThreeWheelIMU;
+import com.pedropathing.localization.localizers.ThreeWheel;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.util.Vector;
 
 /**
  * This is the PoseUpdater class. This class handles getting pose data from the localizer and returning
@@ -24,7 +25,7 @@ import com.pedropathing.pathgen.Vector;
  * @author  Baron Henderson - 20077 The Indubitables
  * @version 1.0, 3/4/2024
  */
-public class PoseUpdater {
+public class Tracker {
     private HardwareMap hardwareMap;
 
     private IMU imu;
@@ -58,13 +59,13 @@ public class PoseUpdater {
      * @param FConstants the constants for the Follower
      * @param LConstants the constants for the Localizer
      */
-    public PoseUpdater(HardwareMap hardwareMap, Localizer localizer, Class<?> FConstants, Class<?> LConstants) {
+    public Tracker(HardwareMap hardwareMap, Localizer localizer, Class<?> FConstants, Class<?> LConstants) {
         Constants.setConstants(FConstants, LConstants);
 
         this.hardwareMap = hardwareMap;
         this.localizer = localizer;
 
-        if (localizer.getClass() != PinpointLocalizer.class) {
+        if (localizer.getClass() != Pinpoint.class) {
             try {
                 localizer.resetIMU();
             } catch (InterruptedException ignored) {
@@ -81,7 +82,7 @@ public class PoseUpdater {
      * @param FConstants the constants for the Follower
      * @param LConstants the constants for the Localizer
      */
-    public PoseUpdater(HardwareMap hardwareMap, Class<?> FConstants, Class<?> LConstants) {
+    public Tracker(HardwareMap hardwareMap, Class<?> FConstants, Class<?> LConstants) {
         this(hardwareMap, createLocalizer(hardwareMap), FConstants, LConstants);
     }
 
@@ -91,11 +92,11 @@ public class PoseUpdater {
      * @param hardwareMap the HardwareMap
      * @param localizer the Localizer
      */
-    public PoseUpdater(HardwareMap hardwareMap, Localizer localizer) {
+    public Tracker(HardwareMap hardwareMap, Localizer localizer) {
         this.hardwareMap = hardwareMap;
         this.localizer = localizer;
 
-        if (localizer.getClass() != PinpointLocalizer.class) {
+        if (localizer.getClass() != Pinpoint.class) {
             try {
                 localizer.resetIMU();
             } catch (InterruptedException ignored) {
@@ -110,24 +111,24 @@ public class PoseUpdater {
      *
      * @param hardwareMap the HardwareMap
      */
-    public PoseUpdater(HardwareMap hardwareMap) {
+    public Tracker(HardwareMap hardwareMap) {
         this(hardwareMap, createLocalizer(hardwareMap));
     }
 
     private static Localizer createLocalizer(HardwareMap hardwareMap) {
         switch (localizers) {
             case DRIVE_ENCODERS:
-                return new DriveEncoderLocalizer(hardwareMap);
+                return new DriveEncoder(hardwareMap);
             case TWO_WHEEL:
-                return new TwoWheelLocalizer(hardwareMap);
+                return new TwoWheel(hardwareMap);
             case THREE_WHEEL:
-                return new ThreeWheelLocalizer(hardwareMap);
+                return new ThreeWheel(hardwareMap);
             case THREE_WHEEL_IMU:
-                return new ThreeWheelIMULocalizer(hardwareMap);
+                return new ThreeWheelIMU(hardwareMap);
             case OTOS:
-                return new OTOSLocalizer(hardwareMap);
+                return new OTOS(hardwareMap);
             case PINPOINT:
-                return new PinpointLocalizer(hardwareMap);
+                return new Pinpoint(hardwareMap);
             default:
                 throw new IllegalArgumentException("Unsupported localizer type");
         }

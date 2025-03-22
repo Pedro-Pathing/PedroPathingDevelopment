@@ -1,5 +1,7 @@
 package com.pedropathing.pathgen;
 
+import com.pedropathing.util.MathFunctions;
+
 /**
  * This is the BezierCurveCoefficients class. This class handles holding the coefficients for each
  * control point for the BezierCurve class to allow for faster on the fly calculations of points,

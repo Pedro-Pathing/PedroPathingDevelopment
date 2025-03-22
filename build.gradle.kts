@@ -13,30 +13,6 @@ plugins {
 
 tasks.named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaJavadoc") {
 	outputDirectory.set(file("${buildDir}/dokka"))
-
-	dokkaSourceSets {
-		named("main") {
-			sourceRoots.from(file("src/main/kotlin"), file("src/main/java"))
-			reportUndocumented.set(true)
-			skipDeprecated.set(false)
-			jdkVersion.set(8) // or adjust based on your requirements
-			perPackageOption {
-				matchingRegex.set("com\\.acmerobotics\\.roadrunner\\.ftc.*")
-				suppress.set(true) // Exclude this package
-			}
-		}
-	}
-}
-
-tasks.dokkaHtml {
-	dokkaSourceSets {
-		named("main") {
-			perPackageOption {
-				matchingRegex.set("com\\.acmerobotics\\.roadrunner\\.ftc.*")
-				suppress.set(true) // Exclude this package
-			}
-		}
-	}
 }
 
 
@@ -97,8 +73,8 @@ publishing {
 	publications {
 		register<MavenPublication>("release") {
 			groupId = "com.pedropathing"
-			artifactId = "beta"
-			version = "1.0.9-beta2"
+			artifactId = "dev"
+			version = "1.1.0-beta1"
 
 			afterEvaluate {
 				from(components["release"])
