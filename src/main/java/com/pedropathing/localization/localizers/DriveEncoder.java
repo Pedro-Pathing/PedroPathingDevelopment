@@ -1,22 +1,21 @@
 package com.pedropathing.localization.localizers;
 
 import static com.pedropathing.localization.constants.DriveEncoderConstants.*;
-import static com.pedropathing.follower.FollowerConstants.leftFrontMotorName;
-import static com.pedropathing.follower.FollowerConstants.leftRearMotorName;
-import static com.pedropathing.follower.FollowerConstants.rightFrontMotorName;
-import static com.pedropathing.follower.FollowerConstants.rightRearMotorName;
+import static com.pedropathing.drivetrain.FollowerConstants.leftFrontMotorName;
+import static com.pedropathing.drivetrain.FollowerConstants.leftRearMotorName;
+import static com.pedropathing.drivetrain.FollowerConstants.rightFrontMotorName;
+import static com.pedropathing.drivetrain.FollowerConstants.rightRearMotorName;
 
 
-import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.pedropathing.localization.Encoder;
 import com.pedropathing.localization.Localizer;
-import com.pedropathing.localization.Matrix;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.MathFunctions;
-import com.pedropathing.pathgen.Vector;
+import com.pedropathing.util.Matrix;
+import com.pedropathing.pathgen.Pose;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.util.Vector;
 import com.pedropathing.util.NanoTimer;
 
 /**
@@ -27,7 +26,7 @@ import com.pedropathing.util.NanoTimer;
  * @version 1.0, 4/2/2024
  */
 
-public class DriveEncoderLocalizer extends Localizer {
+public class DriveEncoder extends Localizer {
     private HardwareMap hardwareMap;
     private Pose startPose;
     private Pose displacementPose;
@@ -52,7 +51,7 @@ public class DriveEncoderLocalizer extends Localizer {
      *
      * @param map the HardwareMap
      */
-    public DriveEncoderLocalizer(HardwareMap map) {
+    public DriveEncoder(HardwareMap map) {
         this(map, new Pose());
     }
 
@@ -63,7 +62,7 @@ public class DriveEncoderLocalizer extends Localizer {
      * @param map the HardwareMap
      * @param setStartPose the Pose to start from
      */
-    public DriveEncoderLocalizer(HardwareMap map, Pose setStartPose) {
+    public DriveEncoder(HardwareMap map, Pose setStartPose) {
         hardwareMap = map;
 
         FORWARD_TICKS_TO_INCHES = forwardTicksToInches;

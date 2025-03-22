@@ -1,27 +1,22 @@
 package com.pedropathing.localization.localizers;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IMU;
 
-import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.*;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import static com.pedropathing.localization.constants.ThreeWheelConstants.*;
 
 import com.pedropathing.localization.Encoder;
 import com.pedropathing.localization.Localizer;
-import com.pedropathing.localization.Matrix;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.MathFunctions;
-import com.pedropathing.pathgen.Vector;
+import com.pedropathing.util.Matrix;
+import com.pedropathing.pathgen.Pose;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.util.Vector;
 import com.pedropathing.util.NanoTimer;
 
 /**
- * This is the ThreeWheelIMULocalizer class. This class extends the Localizer superclass and is a
- * localizer that uses the three wheel odometry set up with the IMU to have more accurate heading
- * readings. The diagram below, which is modified from Road Runner, shows a typical set up.
+ * This is the ThreeWheel class. This class extends the Localizer superclass and is a
+ * localizer that uses the three wheel odometry set up. The diagram below, which is modified from
+ * Road Runner, shows a typical set up.
  *
  * The view is from the top of the robot looking downwards.
  *
@@ -42,12 +37,11 @@ import com.pedropathing.util.NanoTimer;
  *                         |     ----     |
  *                         \--------------/
  *
- * @author Logan Nash
  * @author Anyi Lin - 10158 Scott's Bots
- * @version 1.0, 7/9/2024
+ * @version 1.0, 4/2/2024
  */
 
-public class ThreeWheelIMULocalizer extends Localizer {
+public class ThreeWheel extends Localizer {
     private HardwareMap hardwareMap;
     private Pose startPose;
     private Pose displacementPose;
@@ -61,37 +55,30 @@ public class ThreeWheelIMULocalizer extends Localizer {
     private Pose leftEncoderPose;
     private Pose rightEncoderPose;
     private Pose strafeEncoderPose;
-
-    public final IMU imu;
-    private double previousIMUOrientation;
-    private double deltaRadians;
     private double totalHeading;
     public static double FORWARD_TICKS_TO_INCHES;
     public static double STRAFE_TICKS_TO_INCHES;
     public static double TURN_TICKS_TO_RADIANS;
 
-    public static boolean useIMU = true;
-
     /**
-     * This creates a new ThreeWheelIMULocalizer from a HardwareMap, with a starting Pose at (0,0)
+     * This creates a new ThreeWheel from a HardwareMap, with a starting Pose at (0,0)
      * facing 0 heading.
      *
      * @param map the HardwareMap
      */
-    public ThreeWheelIMULocalizer(HardwareMap map) {
+    public ThreeWheel(HardwareMap map) {
         this(map, new Pose());
     }
 
     /**
-     * This creates a new ThreeWheelIMULocalizer from a HardwareMap and a Pose, with the Pose
+     * This creates a new ThreeWheel from a HardwareMap and a Pose, with the Pose
      * specifying the starting pose of the localizer.
      *
-     * @param map          the HardwareMap
+     * @param map the HardwareMap
      * @param setStartPose the Pose to start from
      */
-    public ThreeWheelIMULocalizer(HardwareMap map, Pose setStartPose) {
+    public ThreeWheel(HardwareMap map, Pose setStartPose) {
         hardwareMap = map;
-        
         FORWARD_TICKS_TO_INCHES = forwardTicksToInches;
         STRAFE_TICKS_TO_INCHES = strafeTicksToInches;
         TURN_TICKS_TO_RADIANS = turnTicksToInches;
@@ -99,9 +86,6 @@ public class ThreeWheelIMULocalizer extends Localizer {
         leftEncoderPose = new Pose(0, leftY, 0);
         rightEncoderPose = new Pose(0, rightY, 0);
         strafeEncoderPose = new Pose(strafeX, 0, Math.toRadians(90));
-
-        imu = hardwareMap.get(IMU.class, IMU_HardwareMapName);
-        imu.initialize(new IMU.Parameters(IMU_Orientation));
 
         leftEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, leftEncoder_HardwareMapName));
         rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, rightEncoder_HardwareMapName));
@@ -233,10 +217,6 @@ public class ThreeWheelIMULocalizer extends Localizer {
         leftEncoder.update();
         rightEncoder.update();
         strafeEncoder.update();
-
-        double currentIMUOrientation = MathFunctions.normalizeAngle(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
-        deltaRadians = MathFunctions.getTurnDirection(previousIMUOrientation, currentIMUOrientation) * MathFunctions.getSmallestAngleDifference(currentIMUOrientation, previousIMUOrientation);
-        previousIMUOrientation = currentIMUOrientation;
     }
 
     /**
@@ -261,11 +241,7 @@ public class ThreeWheelIMULocalizer extends Localizer {
         //y/strafe movement
         returnMatrix.set(1,0, STRAFE_TICKS_TO_INCHES * (strafeEncoder.getDeltaPosition() - strafeEncoderPose.getX() * ((rightEncoder.getDeltaPosition() - leftEncoder.getDeltaPosition()) / (leftEncoderPose.getY() - rightEncoderPose.getY()))));
         // theta/turning
-        if (MathFunctions.getSmallestAngleDifference(0, deltaRadians) > 0.00005 && useIMU) {
-            returnMatrix.set(2, 0, deltaRadians);
-        } else {
-            returnMatrix.set(2,0, TURN_TICKS_TO_RADIANS * ((rightEncoder.getDeltaPosition() - leftEncoder.getDeltaPosition()) / (leftEncoderPose.getY() - rightEncoderPose.getY())));
-        }
+        returnMatrix.set(2,0, TURN_TICKS_TO_RADIANS * ((rightEncoder.getDeltaPosition() - leftEncoder.getDeltaPosition()) / (leftEncoderPose.getY() - rightEncoderPose.getY())));
         return returnMatrix;
     }
 
@@ -310,20 +286,9 @@ public class ThreeWheelIMULocalizer extends Localizer {
     }
 
     /**
-     * This resets the IMU.
+     * This does nothing since this localizer does not use the IMU.
      */
     public void resetIMU() {
-        imu.resetYaw();
-    }
-
-    /**
-     * This is returns the IMU.
-     *
-     * @return returns the IMU
-     */
-    @Override
-    public IMU getIMU() {
-        return imu;
     }
 
     /**

@@ -1,13 +1,12 @@
 package com.pedropathing.localization.localizers;
 
-import com.pedropathing.localization.SparkFunOTOSCorrected;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.pedropathing.localization.Localizer;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.MathFunctions;
-import com.pedropathing.pathgen.Vector;
+import com.pedropathing.pathgen.Pose;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.util.Vector;
 import static com.pedropathing.localization.constants.OTOSConstants.*;
 
 /**
@@ -37,7 +36,7 @@ import static com.pedropathing.localization.constants.OTOSConstants.*;
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 7/20/2024
  */
-public class OTOSLocalizer extends Localizer {
+public class OTOS extends Localizer {
     private HardwareMap hardwareMap;
     private Pose startPose;
     private SparkFunOTOS otos;
@@ -53,7 +52,7 @@ public class OTOSLocalizer extends Localizer {
      *
      * @param map the HardwareMap
      */
-    public OTOSLocalizer(HardwareMap map) {
+    public OTOS(HardwareMap map) {
         this(map, new Pose());
     }
 
@@ -65,14 +64,11 @@ public class OTOSLocalizer extends Localizer {
      * @param setStartPose the Pose to start from
      */
 
-    public OTOSLocalizer(HardwareMap map, Pose setStartPose) {
+    public OTOS(HardwareMap map, Pose setStartPose) {
         hardwareMap = map;
 
-        if(useCorrectedOTOSClass) {
-            otos = hardwareMap.get(SparkFunOTOSCorrected.class, hardwareMapName);
-        } else {
-            otos = hardwareMap.get(SparkFunOTOS.class, hardwareMapName);
-        }
+        otos = hardwareMap.get(SparkFunOTOS.class, hardwareMapName);
+
 
         otos.setLinearUnit(linearUnit);
         otos.setAngularUnit(angleUnit);

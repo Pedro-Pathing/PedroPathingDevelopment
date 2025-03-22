@@ -1,6 +1,4 @@
-package com.pedropathing.util;
-
-import com.acmerobotics.dashboard.config.Config;
+package com.pedropathing.drivetrain;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 

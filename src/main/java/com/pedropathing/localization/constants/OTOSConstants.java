@@ -15,10 +15,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Config
 public class OTOSConstants {
 
-    /** Whether to use the corrected OTOS class
-     * Default Value: false */
-    public static boolean useCorrectedOTOSClass = false;
-
     /** The name of the OTOS sensor in the hardware map
      * Default Value: "sensor_otos" */
     public static String hardwareMapName = "sensor_otos";

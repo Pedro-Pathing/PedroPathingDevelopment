@@ -1,4 +1,6 @@
-package com.pedropathing.pathgen;
+package com.pedropathing.util;
+
+import com.pedropathing.pathgen.Point;
 
 /**
  * This is the Point class. This class handles storing information about vectors, which are

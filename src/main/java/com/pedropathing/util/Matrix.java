@@ -1,4 +1,4 @@
-package com.pedropathing.localization;
+package com.pedropathing.util;
 
 import java.util.Arrays;
 

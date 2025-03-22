@@ -4,18 +4,13 @@ package com.pedropathing.localization.localizers;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import static com.pedropathing.localization.constants.PinpointConstants.*;
 
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+
 import com.pedropathing.localization.GoBildaPinpointDriver;
 import com.pedropathing.localization.Localizer;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.MathFunctions;
-import com.pedropathing.pathgen.Vector;
+import com.pedropathing.pathgen.Pose;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.util.Vector;
 import com.pedropathing.util.NanoTimer;
 
 import java.util.Objects;
@@ -50,7 +45,7 @@ import java.util.Objects;
  * @author Ethan Doak - Gobilda
  * @version 1.0, 10/2/2024
  */
-public class PinpointLocalizer extends Localizer {
+public class Pinpoint extends Localizer {
     private HardwareMap hardwareMap;
     private GoBildaPinpointDriver odo;
     private double previousHeading;
@@ -68,7 +63,7 @@ public class PinpointLocalizer extends Localizer {
      *
      * @param map the HardwareMap
      */
-    public PinpointLocalizer(HardwareMap map){ this(map, new Pose());}
+    public Pinpoint(HardwareMap map){ this(map, new Pose());}
 
     /**
      * This creates a new PinpointLocalizer from a HardwareMap and a Pose, with the Pose
@@ -77,10 +72,10 @@ public class PinpointLocalizer extends Localizer {
      * @param map the HardwareMap
      * @param setStartPose the Pose to start from
      */
-    public PinpointLocalizer(HardwareMap map, Pose setStartPose){
+    public Pinpoint(HardwareMap map, Pose setStartPose){
         hardwareMap = map;
 
-        odo = hardwareMap.get(GoBildaPinpointDriver.class,hardwareMapName);
+        odo = hardwareMap.get(GoBildaPinpointDriver.class, hardwareMapName);
         setOffsets(forwardY, strafeX, distanceUnit);
 
         if(useYawScalar) {

@@ -1,22 +1,22 @@
-package com.pedropathing.util;
+package com.pedropathing.drivetrain;
 
 import androidx.annotation.NonNull;
 
-import kotlin.jvm.JvmField;
-
 /**
- * This is the CustomPIDFCoefficients class. This class handles holding coefficients for PIDF
+ * This is the CustomFilteredPIDFCoefficients class. This class handles holding coefficients for filtered PIDF
  * controllers.
  *
  * @author Anyi Lin - 10158 Scott's Bots
- * @author Aaron Yang - 10158 Scott's Bots
- * @author Harrison Womack - 10158 Scott's Bots
- * @version 1.0, 3/5/2024
+ * @version 1.0, 7/15/2024
  */
-public class CustomPIDFCoefficients {
+
+
+
+public class CustomFilteredPIDFCoefficients {
     public double P;
     public double I;
     public double D;
+    public double T;
     public double F;
 
     public FeedForwardConstant feedForwardConstantEquation;
@@ -24,34 +24,38 @@ public class CustomPIDFCoefficients {
     private boolean usingEquation;
 
     /**
-     * This creates a new CustomPIDFCoefficients with constant coefficients.
+     * This creates a new CustomFilteredPIDFCoefficients with constant coefficients.
      *
      * @param p the coefficient for the proportional factor.
      * @param i the coefficient for the integral factor.
      * @param d the coefficient for the derivative factor.
+     * @param t the time constant for the filter
      * @param f the coefficient for the feedforward factor.
      */
-    public CustomPIDFCoefficients(double p, double i, double d, double f) {
+    public CustomFilteredPIDFCoefficients(double p, double i, double d, double t, double f) {
         P = p;
         I = i;
         D = d;
+        T = t;
         F = f;
     }
 
     /**
-     * This creates a new CustomPIDFCoefficients with constant PID coefficients and a variable
+     * This creates a new CustomFilteredPIDFCoefficients with constant PID coefficients and a variable
      * feedforward equation using a FeedForwardConstant.
      *
      * @param p the coefficient for the proportional factor.
      * @param i the coefficient for the integral factor.
      * @param d the coefficient for the derivative factor.
+     * @param t the time constant for the filter
      * @param f the equation for the feedforward factor.
      */
-    public CustomPIDFCoefficients(double p, double i, double d, FeedForwardConstant f) {
+    public CustomFilteredPIDFCoefficients(double p, double i, double d, double t, FeedForwardConstant f) {
         usingEquation = true;
         P = p;
         I = i;
         D = d;
+        T = t;
         feedForwardConstantEquation = f;
     }
 
@@ -67,16 +71,17 @@ public class CustomPIDFCoefficients {
         return feedForwardConstantEquation.getConstant(input);
     }
 
-    public void setCoefficients(double p, double i, double d, double f) {
+    public void setCoefficients(double p, double i, double d, double t, double f) {
         P = p;
         I = i;
         D = d;
+        T = t;
         F = f;
     }
 
     @NonNull
     @Override
     public String toString() {
-        return "P: " + P + ", I: " + I + ", D: " + D + ", F: " + F;
+        return "P: " + P + ", I: " + I + ", D: " + D + ", T: " + T + ", F: " + F;
     }
 }

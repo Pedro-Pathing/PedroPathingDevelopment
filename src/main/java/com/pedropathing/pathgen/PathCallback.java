@@ -1,5 +1,6 @@
 package com.pedropathing.pathgen;
 
+import com.pedropathing.util.MathFunctions;
 import com.pedropathing.util.SingleRunAction;
 
 /**
