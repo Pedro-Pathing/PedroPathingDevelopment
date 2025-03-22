@@ -139,7 +139,8 @@ public class FollowerCalculator {
     private ElapsedTime zeroVelocityDetectedTimer;
 
     /**
-     * This creates a new FollowerCalculator given a HardwareMap.
+     * This creates a new FollowerCalculator given a PoseUpdater and sets up
+     * constants.
      */
     public FollowerCalculator(PoseUpdater poseUpdater, Class<?> FConstants,
                               Class<?> LConstants) {
@@ -148,12 +149,30 @@ public class FollowerCalculator {
     }
 
     /**
-     * Setup constants for the FollowerCalculator.
+     * This creates a new FollowerCalculator given a PoseUpdater
+     */
+    public FollowerCalculator(PoseUpdater poseUpdater) {
+        setupConstants();
+        initialize(poseUpdater);
+    }
+
+    /**
+     * Setup constants for the FollowerCalculator, setting FConstants and
+     * LConstants before running the setup
+     *
      * @param FConstants the constants for the Follower
      * @param LConstants the constants for the Localizer
      */
     public void setupConstants(Class<?> FConstants, Class<?> LConstants) {
         Constants.setConstants(FConstants, LConstants);
+        setupConstants();
+    }
+
+    /**
+     * Sets up all the values in the follower calculator with values from
+     * FollowerConstants
+     */
+    public void setupConstants() {
         BEZIER_CURVE_SEARCH_LIMIT = FollowerConstants.BEZIER_CURVE_SEARCH_LIMIT;
         AVERAGED_VELOCITY_SAMPLE_NUMBER = FollowerConstants.AVERAGED_VELOCITY_SAMPLE_NUMBER;
         holdPointTranslationalScaling = FollowerConstants.holdPointTranslationalScaling;
