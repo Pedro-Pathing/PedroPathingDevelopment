@@ -32,6 +32,12 @@ import android.util.Log;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.pedropathing.drivetrain.util.Constants;
+import com.pedropathing.drivetrain.util.CustomFilteredPIDFCoefficients;
+import com.pedropathing.drivetrain.util.CustomPIDFCoefficients;
+import com.pedropathing.drivetrain.util.FilteredPIDFController;
+import com.pedropathing.drivetrain.util.KalmanFilter;
+import com.pedropathing.drivetrain.util.PIDFController;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -1186,7 +1192,7 @@ public class OldFollower {
         driveKalmanFilter.debug(telemetry);
         telemetry.update();
         if (drawOnDashboard) {
-            Drawing.drawDebug(this);
+        //    Drawing.drawDebug(this);
         }
     }
 
@@ -1261,7 +1267,7 @@ public class OldFollower {
 
     public void drawOnDashBoard() {
         if (drawOnDashboard) {
-            Drawing.drawDebug(this);
+         //   Drawing.drawDebug(this);
         }
     }
 

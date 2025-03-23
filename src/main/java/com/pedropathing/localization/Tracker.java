@@ -3,7 +3,7 @@ import static com.pedropathing.drivetrain.FollowerConstants.localizers;
 
 import com.pedropathing.localization.localizers.TwoWheel;
 import com.pedropathing.pathgen.Pose;
-import com.pedropathing.drivetrain.Constants;
+import com.pedropathing.drivetrain.util.Constants;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;

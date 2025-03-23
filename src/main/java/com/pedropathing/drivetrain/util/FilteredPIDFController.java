@@ -1,19 +1,15 @@
-package com.pedropathing.drivetrain;
+package com.pedropathing.drivetrain.util;
 
 /**
- * This is the PIDFController class. This class handles the running of PIDFs. PIDF stands for
- * proportional, integral, derivative, and feedforward. PIDFs take the error of a system as an input.
- * Coefficients multiply into the error, the integral of the error, the derivative of the error, and
- * a feedforward value. Then, these values are added up and returned. In this way, error in the
- * system is corrected.
+ * This is the FilteredPIDFController class. This class handles the running of filtered filtered PIDFs. This
+ * behaves very similarly to a regular filtered PIDF controller, but the derivative portion is filtered with
+ * a low pass filter to reduce high frequency noise that could affect results.
  *
  * @author Anyi Lin - 10158 Scott's Bots
- * @author Aaron Yang - 10158 Scott's Bots
- * @author Harrison Womack - 10158 Scott's Bots
- * @version 1.0, 3/5/2024
+ * @version 1.0, 7/15/2024
  */
-public class PIDFController {
-    private CustomPIDFCoefficients coefficients;
+public class FilteredPIDFController {
+    private CustomFilteredPIDFCoefficients coefficients;
 
     private double previousError;
     private double error;
@@ -21,32 +17,34 @@ public class PIDFController {
     private double targetPosition;
     private double errorIntegral;
     private double errorDerivative;
+    private double previousDerivative;
+    private double filteredDerivative;
     private double feedForwardInput;
 
     private long previousUpdateTimeNano;
     private long deltaTimeNano;
 
     /**
-     * This creates a new PIDFController from a CustomPIDFCoefficients.
+     * This creates a new filtered PIDFController from a CustomPIDFCoefficients.
      *
      * @param set the coefficients to use.
      */
-    public PIDFController(CustomPIDFCoefficients set) {
+    public FilteredPIDFController(CustomFilteredPIDFCoefficients set) {
         setCoefficients(set);
         reset();
     }
 
     /**
-     * This takes the current error and runs the PIDF on it.
+     * This takes the current error and runs the filtered PIDF on it.
      *
-     * @return this returns the value of the PIDF from the current error.
+     * @return this returns the value of the filtered PIDF from the current error.
      */
     public double runPIDF() {
-        return error * P() + errorDerivative * D() + errorIntegral * I() + F();
+        return error * P() + filteredDerivative * D() + errorIntegral * I() + F();
     }
 
     /**
-     * This can be used to update the PIDF's current position when inputting a current position and
+     * This can be used to update the filtered PIDF's current position when inputting a current position and
      * a target position to calculate error. This will update the error from the current position to
      * the target position specified.
      *
@@ -61,7 +59,9 @@ public class PIDFController {
         previousUpdateTimeNano = System.nanoTime();
 
         errorIntegral += error * (deltaTimeNano / Math.pow(10.0, 9));
+        previousDerivative = filteredDerivative;
         errorDerivative = (error - previousError) / (deltaTimeNano / Math.pow(10.0, 9));
+        filteredDerivative = T() * previousDerivative + (1 - T()) * errorDerivative;
     }
 
     /**
@@ -78,7 +78,9 @@ public class PIDFController {
         previousUpdateTimeNano = System.nanoTime();
 
         errorIntegral += error * (deltaTimeNano / Math.pow(10.0, 9));
+        previousDerivative = errorDerivative;
         errorDerivative = (error - previousError) / (deltaTimeNano / Math.pow(10.0, 9));
+        filteredDerivative = T() * previousDerivative + (1 - T()) * errorDerivative;
     }
 
     /**
@@ -91,7 +93,7 @@ public class PIDFController {
     }
 
     /**
-     * This resets all the PIDF's error and position values, as well as the time stamps.
+     * This resets all the filtered PIDF's error and position values, as well as the time stamps.
      */
     public void reset() {
         previousError = 0;
@@ -100,11 +102,13 @@ public class PIDFController {
         targetPosition = 0;
         errorIntegral = 0;
         errorDerivative = 0;
+        previousDerivative = 0;
+        filteredDerivative = 0;
         previousUpdateTimeNano = System.nanoTime();
     }
 
     /**
-     * This is used to set the target position if the PIDF is being run with current position and
+     * This is used to set the target position if the filtered PIDF is being run with current position and
      * target position inputs rather than error inputs.
      *
      * @param set this sets the target position.
@@ -114,7 +118,7 @@ public class PIDFController {
     }
 
     /**
-     * This returns the target position of the PIDF.
+     * This returns the target position of the filtered PIDF.
      *
      * @return this returns the target position.
      */
@@ -123,25 +127,25 @@ public class PIDFController {
     }
 
     /**
-     * This is used to set the coefficients of the PIDF.
+     * This is used to set the coefficients of the filtered PIDF.
      *
-     * @param set the coefficients that the PIDF will use.
+     * @param set the coefficients that the filtered PIDF will use.
      */
-    public void setCoefficients(CustomPIDFCoefficients set) {
+    public void setCoefficients(CustomFilteredPIDFCoefficients set) {
         coefficients = set;
     }
 
     /**
-     * This returns the PIDF's current coefficients.
+     * This returns the filtered PIDF's current coefficients.
      *
      * @return this returns the current coefficients.
      */
-    public CustomPIDFCoefficients getCoefficients() {
+    public CustomFilteredPIDFCoefficients getCoefficients() {
         return coefficients;
     }
 
     /**
-     * This sets the proportional (P) coefficient of the PIDF only.
+     * This sets the proportional (P) coefficient of the filtered PIDF only.
      *
      * @param set this sets the P coefficient.
      */
@@ -150,7 +154,7 @@ public class PIDFController {
     }
 
     /**
-     * This returns the proportional (P) coefficient of the PIDF.
+     * This returns the proportional (P) coefficient of the filtered PIDF.
      *
      * @return this returns the P coefficient.
      */
@@ -159,7 +163,7 @@ public class PIDFController {
     }
 
     /**
-     * This sets the integral (I) coefficient of the PIDF only.
+     * This sets the integral (I) coefficient of the filtered PIDF only.
      *
      * @param set this sets the I coefficient.
      */
@@ -168,7 +172,7 @@ public class PIDFController {
     }
 
     /**
-     * This returns the integral (I) coefficient of the PIDF.
+     * This returns the integral (I) coefficient of the filtered PIDF.
      *
      * @return this returns the I coefficient.
      */
@@ -177,7 +181,7 @@ public class PIDFController {
     }
 
     /**
-     * This sets the derivative (D) coefficient of the PIDF only.
+     * This sets the derivative (D) coefficient of the filtered PIDF only.
      *
      * @param set this sets the D coefficient.
      */
@@ -186,7 +190,7 @@ public class PIDFController {
     }
 
     /**
-     * This returns the derivative (D) coefficient of the PIDF.
+     * This returns the derivative (D) coefficient of the filtered PIDF.
      *
      * @return this returns the D coefficient.
      */
@@ -195,7 +199,25 @@ public class PIDFController {
     }
 
     /**
-     * This sets the feedforward (F) constant of the PIDF only.
+     * This sets the time constant (T) of the filtered PIDF only.
+     *
+     * @param set this sets the time constant.
+     */
+    public void setT(double set) {
+        coefficients.T = set;
+    }
+
+    /**
+     * This returns the time constant (T) of the filtered PIDF.
+     *
+     * @return this returns the time constant.
+     */
+    public double T() {
+        return coefficients.T;
+    }
+
+    /**
+     * This sets the feedforward (F) constant of the filtered PIDF only.
      *
      * @param set this sets the F constant.
      */
@@ -204,7 +226,7 @@ public class PIDFController {
     }
 
     /**
-     * This returns the feedforward (F) constant of the PIDF.
+     * This returns the feedforward (F) constant of the filtered PIDF.
      *
      * @return this returns the F constant.
      */
@@ -213,7 +235,7 @@ public class PIDFController {
     }
 
     /**
-     * This returns the current error of the PIDF.
+     * This returns the current error of the filtered PIDF.
      *
      * @return this returns the error.
      */

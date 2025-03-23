@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
+import com.pedropathing.drivetrain.Follower;
 import com.pedropathing.drivetrain.OldFollower;
 import com.pedropathing.pathgen.Pose;
 import com.pedropathing.pathgen.Path;
@@ -26,9 +27,9 @@ public class Drawing {
      * This draws everything that will be used in the Follower's telemetryDebug() method. This takes
      * a Follower as an input, so an instance of the DashbaordDrawingHandler class is not needed.
      *
-     * @param follower
+     * @param follower the Follower to draw
      */
-    public static void drawDebug(OldFollower follower) {
+    public static void drawDebug(Follower follower) {
         if (follower.getCurrentPath() != null) {
             drawPath(follower.getCurrentPath(), "#3F51B5");
             Point closestPoint = follower.getPointFromPath(follower.getCurrentPath().getClosestPointTValue());

@@ -1,4 +1,4 @@
-package com.pedropathing.drivetrain;
+package com.pedropathing.drivetrain.util;
 
 import androidx.annotation.NonNull;
 
