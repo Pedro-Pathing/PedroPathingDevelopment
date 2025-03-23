@@ -8,9 +8,12 @@ import com.pedropathing.drivetrain.util.FilteredPIDFController;
 import com.pedropathing.drivetrain.util.KalmanFilter;
 import com.pedropathing.drivetrain.util.PIDFController;
 import com.pedropathing.pathgen.Path;
+import com.pedropathing.pathgen.Point;
 import com.pedropathing.pathgen.Pose;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.util.Vector;
+
+import java.util.Arrays;
 
 /**
  * This is the ErrorHandler class. This class handles the error correction for the drivetrain.
@@ -27,13 +30,9 @@ public class ErrorHandler {
     private PIDFController translationalIntegral;
     private PIDFController secondaryHeadingPIDF;
     private PIDFController headingPIDF;
-    private FilteredPIDFController secondaryDrivePIDF;
-    private FilteredPIDFController drivePIDF;
-    private KalmanFilter driveKalmanFilter;
 
     private Vector secondaryTranslationalIntegralVector;
     private Vector translationalIntegralVector;
-    private Vector driveVector;
     private Vector headingVector;
     private Vector translationalVector;
     private Vector centripetalVector;
@@ -41,15 +40,10 @@ public class ErrorHandler {
 
     private double previousSecondaryTranslationalIntegral;
     private double previousTranslationalIntegral;
-    private double driveError;
     private double headingError;
-    private double rawDriveError;
-    private double previousRawDriveError;
-    private double[] driveErrors;
 
     private double maxPower;
-    private double mass;
-    private boolean useDrive;
+    private final double mass;
     private boolean useHeading;
     private boolean useTranslational;
     private boolean useCentripetal;
@@ -57,16 +51,14 @@ public class ErrorHandler {
     /**
      * @param maxPower The maximum power the robot can output.
      * @param mass The mass of the robot.
-     * @param useDrive Whether to use the drive PIDF controller.
      * @param useHeading Whether to use the heading PIDF controller.
      * @param useTranslational Whether to use the translational PIDF controller.
      * @param useCentripetal Whether to use the centripetal PIDF controller.
      */
 
-    public ErrorHandler(double maxPower, double mass, boolean useDrive, boolean useHeading, boolean useTranslational, boolean useCentripetal) {
+    public ErrorHandler(double maxPower, double mass, boolean useHeading, boolean useTranslational, boolean useCentripetal) {
         this.maxPower = maxPower;
         this.mass = mass;
-        this.useDrive = useDrive;
         this.useHeading = useHeading;
         this.useTranslational = useTranslational;
         this.useCentripetal = useCentripetal;
@@ -77,25 +69,17 @@ public class ErrorHandler {
         translationalIntegral = new PIDFController(new CustomPIDFCoefficients(0, 0, 0, 0));
         secondaryHeadingPIDF = new PIDFController(secondaryHeadingPIDFCoefficients);
         headingPIDF = new PIDFController(headingPIDFCoefficients);
-        secondaryDrivePIDF = new FilteredPIDFController(secondaryDrivePIDFCoefficients);
-        drivePIDF = new FilteredPIDFController(drivePIDFCoefficients);
-        driveKalmanFilter = new KalmanFilter(driveKalmanFilterParameters);
 
         secondaryTranslationalIntegralVector = new Vector();
         translationalIntegralVector = new Vector();
-        driveVector = new Vector();
         headingVector = new Vector();
         translationalVector = new Vector();
         centripetalVector = new Vector();
         correctiveVector = new Vector();
-
-        driveErrors = new double[2];
         reset();
     }
 
     public void reset() {
-        secondaryDrivePIDF.reset();
-        drivePIDF.reset();
         secondaryHeadingPIDF.reset();
         headingPIDF.reset();
         secondaryTranslationalPIDF.reset();
@@ -106,37 +90,11 @@ public class ErrorHandler {
         translationalIntegral.reset();
         translationalIntegralVector = new Vector();
         previousTranslationalIntegral = 0;
-        driveVector = new Vector();
         headingVector = new Vector();
         translationalVector = new Vector();
         centripetalVector = new Vector();
         correctiveVector = new Vector();
-        driveError = 0;
         headingError = 0;
-        rawDriveError = 0;
-        previousRawDriveError = 0;
-        for (int i = 0; i < driveErrors.length; i++) {
-            driveErrors[i] = 0;
-        }
-        driveKalmanFilter.reset();
-    }
-
-    public Vector getDriveVector(Path currentPath, Pose currentPose, Vector currentVelocity) {
-        if (!useDrive) return new Vector();
-
-        driveError = getDriveVelocityError(currentPath, currentPose, currentVelocity);
-
-        if (Math.abs(driveError) < drivePIDFSwitch && useSecondaryDrivePID) {
-            secondaryDrivePIDF.updateError(driveError);
-            driveVector = new Vector(MathFunctions.clamp(secondaryDrivePIDF.runPIDF() + secondaryDrivePIDFFeedForward * MathFunctions.getSign(driveError), -maxPower, maxPower), 
-                                   currentPath.getClosestPointTangentVector().getTheta());
-            return MathFunctions.copyVector(driveVector);
-        }
-
-        drivePIDF.updateError(driveError);
-        driveVector = new Vector(MathFunctions.clamp(drivePIDF.runPIDF() + drivePIDFFeedForward * MathFunctions.getSign(driveError), -maxPower, maxPower),
-                               currentPath.getClosestPointTangentVector().getTheta());
-        return MathFunctions.copyVector(driveVector);
     }
 
     public Vector getHeadingVector(Path currentPath, Pose currentPose) {
@@ -160,9 +118,9 @@ public class ErrorHandler {
         return MathFunctions.copyVector(headingVector);
     }
 
-    public Vector getCorrectiveVector(Path currentPath, Pose currentPose, Vector currentVelocity) {
+    public Vector getCorrectiveVector(Path currentPath, Pose currentPose, Vector currentVelocity, Pose closestPose) {
         Vector centripetal = getCentripetalForceCorrection(currentPath, currentVelocity);
-        Vector translational = getTranslationalCorrection(currentPath, currentPose);
+        Vector translational = getTranslationalCorrection(currentPath, currentPose, closestPose);
         
         // Combine vectors and normalize if needed
         Vector corrective = MathFunctions.addVectors(centripetal, translational);
@@ -191,68 +149,12 @@ public class ErrorHandler {
         return (-b + Math.sqrt(Math.pow(b, 2) - a*c))/(a);
     }
 
-    private double getDriveVelocityError(Path currentPath, Pose currentPose, Vector currentVelocity) {
-        double distanceToGoal;
-        if (!currentPath.isAtParametricEnd()) {
-            distanceToGoal = currentPath.length() * (1 - currentPath.getClosestPointTValue());
-        } else {
-            Vector offset = new Vector();
-            offset.setOrthogonalComponents(currentPose.getX() - currentPath.getLastControlPoint().getX(), 
-                                         currentPose.getY() - currentPath.getLastControlPoint().getY());
-            distanceToGoal = MathFunctions.dotProduct(currentPath.getEndTangent(), offset);
-        }
-
-        Vector distanceToGoalVector = MathFunctions.scalarMultiplyVector(
-            MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector()), distanceToGoal);
-        Vector velocity = new Vector(MathFunctions.dotProduct(currentVelocity, 
-            MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), 
-            currentPath.getClosestPointTangentVector().getTheta());
-
-        Vector forwardHeadingVector = new Vector(1.0, currentPose.getHeading());
-        double forwardVelocity = MathFunctions.dotProduct(forwardHeadingVector, velocity);
-        double forwardDistanceToGoal = MathFunctions.dotProduct(forwardHeadingVector, distanceToGoalVector);
-        double forwardVelocityGoal = MathFunctions.getSign(forwardDistanceToGoal) * 
-            Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * 
-            forwardZeroPowerAcceleration * (forwardDistanceToGoal <= 0 ? 1 : -1) * forwardDistanceToGoal));
-        double forwardVelocityZeroPowerDecay = forwardVelocity - MathFunctions.getSign(forwardDistanceToGoal) * 
-            Math.sqrt(Math.abs(Math.pow(forwardVelocity, 2) + 2 * forwardZeroPowerAcceleration * Math.abs(forwardDistanceToGoal)));
-
-        Vector lateralHeadingVector = new Vector(1.0, currentPose.getHeading() - Math.PI / 2);
-        double lateralVelocity = MathFunctions.dotProduct(lateralHeadingVector, velocity);
-        double lateralDistanceToGoal = MathFunctions.dotProduct(lateralHeadingVector, distanceToGoalVector);
-        double lateralVelocityGoal = MathFunctions.getSign(lateralDistanceToGoal) * 
-            Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * 
-            lateralZeroPowerAcceleration * (lateralDistanceToGoal <= 0 ? 1 : -1) * lateralDistanceToGoal));
-        double lateralVelocityZeroPowerDecay = lateralVelocity - MathFunctions.getSign(lateralDistanceToGoal) * 
-            Math.sqrt(Math.abs(Math.pow(lateralVelocity, 2) + 2 * lateralZeroPowerAcceleration * Math.abs(lateralDistanceToGoal)));
-
-        Vector forwardVelocityError = new Vector(forwardVelocityGoal - forwardVelocityZeroPowerDecay - forwardVelocity, 
-                                               forwardHeadingVector.getTheta());
-        Vector lateralVelocityError = new Vector(lateralVelocityGoal - lateralVelocityZeroPowerDecay - lateralVelocity, 
-                                               lateralHeadingVector.getTheta());
-        Vector velocityErrorVector = MathFunctions.addVectors(forwardVelocityError, lateralVelocityError);
-
-        previousRawDriveError = rawDriveError;
-        rawDriveError = velocityErrorVector.getMagnitude() * 
-            MathFunctions.getSign(MathFunctions.dotProduct(velocityErrorVector, currentPath.getClosestPointTangentVector()));
-
-        double projection = 2 * driveErrors[1] - driveErrors[0];
-        driveKalmanFilter.update(rawDriveError - previousRawDriveError, projection);
-
-        for (int i = 0; i < driveErrors.length - 1; i++) {
-            driveErrors[i] = driveErrors[i + 1];
-        }
-        driveErrors[1] = driveKalmanFilter.getState();
-
-        return driveKalmanFilter.getState();
-    }
-
-    private Vector getTranslationalCorrection(Path currentPath, Pose currentPose) {
+    private Vector getTranslationalCorrection(Path currentPath, Pose currentPose, Pose closestPose) {
         if (!useTranslational) return new Vector();
-        
+
         Vector translationalVector = new Vector();
-        double x = currentPose.getX() - currentPose.getX();
-        double y = currentPose.getY() - currentPose.getY();
+        double x = closestPose.getX() - currentPose.getX();
+        double y = closestPose.getY() - currentPose.getY();
         translationalVector.setOrthogonalComponents(x, y);
 
         if (!(currentPath.isAtParametricEnd() || currentPath.isAtParametricStart())) {
@@ -318,10 +220,6 @@ public class ErrorHandler {
         return headingError;
     }
 
-    public double getDriveError() {
-        return driveError;
-    }
-
     /**
      * This will update the PIDF coefficients for primary Heading PIDF mid run
      * can be used between paths
@@ -343,16 +241,6 @@ public class ErrorHandler {
     }
 
     /**
-     * This will update the PIDF coefficients for primary Drive PIDF mid run
-     * can be used between paths
-     *
-     * @param set PIDF coefficients you would like to set.
-     */
-    public void setDrivePIDF(CustomFilteredPIDFCoefficients set){
-        drivePIDF.setCoefficients(set);
-    }
-
-    /**
      * This will update the PIDF coefficients for secondary Heading PIDF mid run
      * can be used between paths
      *
@@ -371,23 +259,11 @@ public class ErrorHandler {
     public void setSecondaryTranslationalPIDF(CustomPIDFCoefficients set){
         secondaryTranslationalPIDF.setCoefficients(set);
     }
-
-    /**
-     * This will update the PIDF coefficients for secondary Drive PIDF mid run
-     * can be used between paths
-     *
-     * @param set PIDF coefficients you would like to set.
-     */
-    public void setSecondaryDrivePIDF(CustomFilteredPIDFCoefficients set){
-        secondaryDrivePIDF.setCoefficients(set);
-    }
     
-    public void update(boolean useDrive, boolean useHeading, boolean useTranslational, boolean useCentripetal, double maxPower, double mass) {
+    public void update(boolean useHeading, boolean useTranslational, boolean useCentripetal, double maxPower) {
         this.maxPower = maxPower;
-        this.useDrive = useDrive;
         this.useHeading = useHeading;
         this.useTranslational = useTranslational;
         this.useCentripetal = useCentripetal;
-        this.mass = mass;
     }
 }

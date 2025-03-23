@@ -15,7 +15,7 @@ import java.util.ArrayList;
  */
 public class PathBuilder {
     private ArrayList<Path> paths = new ArrayList<>();
-
+    private PathChain.DecelerationType decelerationType = PathChain.DecelerationType.LAST_PATH;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
 
     /**
@@ -244,6 +244,21 @@ public class PathBuilder {
     public PathChain build() {
         PathChain returnChain = new PathChain(paths);
         returnChain.setCallbacks(callbacks);
+        returnChain.setDecelerationType(decelerationType);
         return returnChain;
+    }
+
+    /**
+     * Makes this decelerate based on the entire chain and not only the last path (recommended if the last path is short)
+     */
+    public void setGlobalDeceleration() {
+        this.decelerationType = PathChain.DecelerationType.GLOBAL;
+    }
+
+    /**
+     * Sets no deceleration to the pathchain
+     */
+    public void setNoDeceleration() {
+        this.decelerationType = PathChain.DecelerationType.NONE;
     }
 }

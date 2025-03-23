@@ -2,6 +2,7 @@ package com.pedropathing.drivetrain;
 
 import static com.pedropathing.drivetrain.Drivetrains.MECANUM;
 import static com.pedropathing.drivetrain.FollowerConstants.cacheInvalidateSeconds;
+import static com.pedropathing.drivetrain.FollowerConstants.forwardZeroPowerAcceleration;
 import static com.pedropathing.drivetrain.FollowerConstants.nominalVoltage;
 
 import android.util.Log;
@@ -47,6 +48,7 @@ import java.util.ArrayList;
 public class Follower {
     private Drivetrain drivetrain;
     private ErrorHandler errorHandler;
+    private DriveHandler driveHandler;
     private Tracker tracker;
     private DashboardPoseTracker dashboardPoseTracker;
 
@@ -93,7 +95,8 @@ public class Follower {
                 break;
         }
 
-        this.errorHandler = new ErrorHandler(FollowerConstants.maxPower, FollowerConstants.mass, useDrive, useHeading, useTranslational, useCentripetal);
+        this.errorHandler = new ErrorHandler(FollowerConstants.maxPower, FollowerConstants.mass, useHeading, useTranslational, useCentripetal);
+        this.driveHandler = new DriveHandler(useDrive, FollowerConstants.maxPower);
         this.tracker = new Tracker(hardwareMap, localizer);
         this.dashboardPoseTracker = new DashboardPoseTracker(tracker);
 
@@ -116,8 +119,8 @@ public class Follower {
                 break;
         }
 
-        this.errorHandler = new ErrorHandler(FollowerConstants.maxPower, FollowerConstants.mass, useDrive, useHeading, useTranslational, useCentripetal);
-        this.tracker = new Tracker(hardwareMap);
+        this.errorHandler = new ErrorHandler(FollowerConstants.maxPower, FollowerConstants.mass, useHeading, useTranslational, useCentripetal);
+        this.driveHandler = new DriveHandler(useDrive, FollowerConstants.maxPower);
         this.dashboardPoseTracker = new DashboardPoseTracker(tracker);
 
         teleopDriveValues = new double[3];
@@ -133,7 +136,8 @@ public class Follower {
     public Follower(HardwareMap hardwareMap, Drivetrain drivetrain, Class<?> FConstants, Class<?> LConstants) {
         setupConstants(FConstants, LConstants);
         this.drivetrain = drivetrain;
-        this.errorHandler = new ErrorHandler(FollowerConstants.maxPower, FollowerConstants.mass, useDrive, useHeading, useTranslational, useCentripetal);
+        this.errorHandler = new ErrorHandler(FollowerConstants.maxPower, FollowerConstants.mass, useHeading, useTranslational, useCentripetal);
+        this.driveHandler = new DriveHandler(useDrive, FollowerConstants.maxPower);
         this.tracker = new Tracker(hardwareMap);
         this.dashboardPoseTracker = new DashboardPoseTracker(tracker);
         
@@ -148,7 +152,8 @@ public class Follower {
     public Follower(HardwareMap hardwareMap, Drivetrain drivetrain, Localizer localizer, Class<?> FConstants, Class<?> LConstants) {
         setupConstants(FConstants, LConstants);
         this.drivetrain = drivetrain;
-        this.errorHandler = new ErrorHandler(FollowerConstants.maxPower, FollowerConstants.mass, useDrive, useHeading, useTranslational, useCentripetal);
+        this.errorHandler = new ErrorHandler(FollowerConstants.maxPower, FollowerConstants.mass, useHeading, useTranslational, useCentripetal);
+        this.driveHandler = new DriveHandler(useDrive, FollowerConstants.maxPower);
         this.tracker = new Tracker(hardwareMap, localizer);
         this.dashboardPoseTracker = new DashboardPoseTracker(tracker);
         
@@ -264,7 +269,8 @@ public class Follower {
 
     public void update() {
         tracker.update();
-        errorHandler.update(useDrive, useHeading, useTranslational, useCentripetal, FollowerConstants.maxPower, FollowerConstants.mass);
+        errorHandler.update(useHeading, useTranslational, useCentripetal, drivetrain.getMaxPower());
+        driveHandler.update(useDrive, drivetrain.getMaxPower());
         if (drawOnDashboard) {
             dashboardPoseTracker.update();
         }
@@ -296,14 +302,14 @@ public class Follower {
             if (currentPath != null) {
                 if (holdingPosition) {
                     closestPose = currentPath.getClosestPoint(tracker.getPose(), 1);
-                    Vector corrective = errorHandler.getCorrectiveVector(currentPath, tracker.getPose(), tracker.getVelocity());
+                    Vector corrective = errorHandler.getCorrectiveVector(currentPath, tracker.getPose(), tracker.getVelocity(), closestPose);
                     Vector heading = errorHandler.getHeadingVector(currentPath, tracker.getPose());
                     
                     drivetrain.setDrivePowers(drivetrain.getDrivePowers(
                         MathFunctions.scalarMultiplyVector(corrective, FollowerConstants.holdPointTranslationalScaling),
                         MathFunctions.scalarMultiplyVector(heading, FollowerConstants.holdPointHeadingScaling),
                         new Vector(),
-                        tracker.getPose().getHeading()
+                        getPose().getHeading()
                     ));
 
                     if (errorHandler.getHeadingError() < FollowerConstants.turnHeadingErrorThreshold && isTurning) {
@@ -318,15 +324,15 @@ public class Follower {
                             updateCallbacks();
                         }
 
-                        Vector corrective = errorHandler.getCorrectiveVector(currentPath, tracker.getPose(), tracker.getVelocity());
+                        Vector corrective = errorHandler.getCorrectiveVector(currentPath, tracker.getPose(), tracker.getVelocity(), closestPose);
                         Vector heading = errorHandler.getHeadingVector(currentPath, tracker.getPose());
-                        Vector drive = errorHandler.getDriveVector(currentPath, tracker.getPose(), tracker.getVelocity());
+                        Vector drive = getDriveVector(distanceToTarget());
 
                         drivetrain.setDrivePowers(drivetrain.getDrivePowers(
                             corrective,
                             heading,
                             drive,
-                            tracker.getPose().getHeading()
+                            getPose().getHeading()
                         ));
 
                         if (tracker.getVelocity().getMagnitude() < 1.0 && currentPath.getClosestPointTValue() > 0.8) {
@@ -382,6 +388,7 @@ public class Follower {
         isBusy = false;
         reachedParametricPathEnd = false;
         errorHandler.reset();
+        driveHandler.reset();
         drivetrain.stop();
     }
 
@@ -525,7 +532,7 @@ public class Follower {
     }
 
     public double getDriveError() {
-        return errorHandler.getDriveError();
+        return driveHandler.getDriveError();
     }
 
     /**
@@ -605,7 +612,7 @@ public class Follower {
      * @param set PIDF coefficients you would like to set.
      */
     public void setDrivePIDF(CustomFilteredPIDFCoefficients set){
-        errorHandler.setDrivePIDF(set);
+        driveHandler.setDrivePIDF(set);
     }
 
     /**
@@ -635,7 +642,7 @@ public class Follower {
      * @param set PIDF coefficients you would like to set.
      */
     public void setSecondaryDrivePIDF(CustomFilteredPIDFCoefficients set){
-        errorHandler.setSecondaryDrivePIDF(set);
+        driveHandler.setSecondaryDrivePIDF(set);
     }
 
     /**
@@ -682,11 +689,37 @@ public class Follower {
         }
     }
 
+    public double distanceToTarget() {
+        double distanceToGoal;
+        if (!currentPath.isAtParametricEnd()) {
+            if (followingPathChain && currentPathChain.getDecelerationType() == PathChain.DecelerationType.GLOBAL) {
+                double remainingLength = 0;
+
+                if (chainIndex < currentPathChain.size()) {
+                    for (int i = chainIndex + 1; i<currentPathChain.size(); i++) {
+                        remainingLength += currentPathChain.getPath(i).length();
+                    }
+                }
+
+                distanceToGoal = remainingLength + currentPath.length() * (1 - currentPath.getClosestPointTValue());
+            } else {
+                distanceToGoal = currentPath.length() * (1 - currentPath.getClosestPointTValue());
+            }
+        } else {
+            Vector offset = new Vector();
+            offset.setOrthogonalComponents(getPose().getX() - currentPath.getLastControlPoint().getX(), getPose().getY() - currentPath.getLastControlPoint().getY());
+            distanceToGoal = MathFunctions.dotProduct(currentPath.getEndTangent(), offset);
+        }
+
+        return distanceToGoal;
+    }
+
     public void resumePathFollowing() {
         if (currentPath != null) {
             isBusy = true;
             reachedParametricPathEnd = false;
             errorHandler.reset();
+            driveHandler.reset();
             drivetrain.setMotorsToFloat();
         }
     }
@@ -737,5 +770,17 @@ public class Follower {
 
     public Vector getAverageAcceleration() {
         return averageAcceleration;
+    }
+
+    public Vector getDriveVector(double distanceToGoal) {
+        if (followingPathChain && ((chainIndex < currentPathChain.size() - 1 && currentPathChain.getDecelerationType() == PathChain.DecelerationType.LAST_PATH) || currentPathChain.getDecelerationType() == PathChain.DecelerationType.NONE)) {
+            return new Vector(drivetrain.getMaxPower(), currentPath.getClosestPointTangentVector().getTheta());
+        }
+
+        if (followingPathChain && currentPathChain.getDecelerationType() == PathChain.DecelerationType.GLOBAL && distanceToGoal >= Math.abs(currentPathChain.getDecelerationStartMultiplier() * 3/2 * Math.pow(FollowerConstants.xMovement, 2) / forwardZeroPowerAcceleration)) {
+            return new Vector(drivetrain.getMaxPower(), currentPath.getClosestPointTangentVector().getTheta());
+        }
+
+        return driveHandler.getDriveVector(currentPath, tracker.getPose(), tracker.getVelocity(), distanceToGoal);
     }
 }

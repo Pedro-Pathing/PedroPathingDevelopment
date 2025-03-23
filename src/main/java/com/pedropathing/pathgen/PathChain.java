@@ -1,6 +1,9 @@
 package com.pedropathing.pathgen;
 
+import com.pedropathing.drivetrain.FollowerConstants;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * This is the PathChain class. This class handles chaining together multiple Paths into a larger
@@ -15,7 +18,15 @@ import java.util.ArrayList;
  */
 public class PathChain {
     private ArrayList<Path> pathChain = new ArrayList<>();
+    private double length = 0;
 
+    public enum DecelerationType {
+        NONE,
+        GLOBAL,
+        LAST_PATH
+    }
+    private DecelerationType decelerationType = DecelerationType.LAST_PATH;
+    private double decelerationStartMultiplier = FollowerConstants.decelerationStartMultiplier;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
 
     /**
@@ -29,6 +40,7 @@ public class PathChain {
     public PathChain(Path... paths) {
         for (Path path : paths) {
             pathChain.add(path);
+            length += path.length();
         }
     }
 
@@ -69,9 +81,7 @@ public class PathChain {
      * @param callbacks the specified PathCallbacks.
      */
     public void setCallbacks(PathCallback... callbacks) {
-        for (PathCallback callback : callbacks) {
-            this.callbacks.add(callback);
-        }
+        this.callbacks.addAll(Arrays.asList(callbacks));
     }
 
     /**
@@ -96,5 +106,25 @@ public class PathChain {
         for (PathCallback callback : callbacks) {
             callback.reset();
         }
+    }
+
+    public void setDecelerationType(DecelerationType decelerationType) {
+        this.decelerationType = decelerationType;
+    }
+
+    public DecelerationType getDecelerationType() {
+        return decelerationType;
+    }
+
+    public double length() {
+        return length;
+    }
+
+    public void setDecelerationStartMultiplier(double decelerationStartMultiplier) {
+        this.decelerationStartMultiplier = decelerationStartMultiplier;
+    }
+
+    public double getDecelerationStartMultiplier() {
+        return decelerationStartMultiplier;
     }
 }

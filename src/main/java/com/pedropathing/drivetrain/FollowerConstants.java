@@ -354,4 +354,9 @@ public class FollowerConstants {
      *  In Radians
      *  Default Value: 0.01 */
     public static double turnHeadingErrorThreshold = 0.01;
+
+    /**
+     * Multiplier for when the path should start its deceleration
+     */
+    public static double decelerationStartMultiplier = 1;
 }
