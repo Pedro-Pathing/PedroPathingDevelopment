@@ -1,5 +1,6 @@
 package com.pedropathing.drivetrain;
 
+import static com.pedropathing.drivetrain.Drivetrains.MECANUM;
 import static com.pedropathing.drivetrain.FollowerConstants.cacheInvalidateSeconds;
 import static com.pedropathing.drivetrain.FollowerConstants.nominalVoltage;
 
@@ -7,6 +8,7 @@ import android.util.Log;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.pedropathing.drivetrain.util.Constants;
 import com.pedropathing.drivetrain.util.CustomFilteredPIDFCoefficients;
 import com.pedropathing.drivetrain.util.CustomPIDFCoefficients;
 import com.pedropathing.localization.Tracker;
@@ -23,8 +25,11 @@ import com.pedropathing.pathgen.Point;
 import com.pedropathing.util.Vector;
 import com.pedropathing.util.Drawing;
 import com.pedropathing.util.DashboardPoseTracker;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+import java.util.ArrayList;
 
 /**
  * This is the Follower class. This class handles the following of paths and holding of positions.
@@ -62,14 +67,71 @@ public class Follower {
     private Vector teleopDriveVector;
     private Vector teleopHeadingVector;
 
+    // Add missing fields
+    private ArrayList<Vector> velocities = new ArrayList<>();
+    private ArrayList<Vector> accelerations = new ArrayList<>();
+    private Vector averageVelocity;
+    private Vector averagePreviousVelocity;
+    private Vector averageAcceleration;
+    private ElapsedTime zeroVelocityDetectedTimer;
+    private boolean logDebug = true;
+
     public static boolean useDrive = true;
     public static boolean useHeading = true;
     public static boolean useTranslational = true;
     public static boolean useCentripetal = true;
     public static boolean drawOnDashboard = true;
 
+    public Follower(HardwareMap hardwareMap, Localizer localizer, Class<?> FConstants, Class<?> LConstants) {
+        setupConstants(FConstants, LConstants);
+        switch (FollowerConstants.drivetrain) {
+            case MECANUM:
+                this.drivetrain = new Mecanum(hardwareMap);
+                break;
+            default:
+                this.drivetrain = new Mecanum(hardwareMap);
+                break;
+        }
 
-    public Follower(HardwareMap hardwareMap, Drivetrain drivetrain) {
+        this.errorHandler = new ErrorHandler(FollowerConstants.maxPower, FollowerConstants.mass, useDrive, useHeading, useTranslational, useCentripetal);
+        this.tracker = new Tracker(hardwareMap, localizer);
+        this.dashboardPoseTracker = new DashboardPoseTracker(tracker);
+
+        teleopDriveValues = new double[3];
+        teleopDriveVector = new Vector();
+        teleopHeadingVector = new Vector();
+
+        drivetrain.initialize();
+        breakFollowing();
+    }
+
+    public Follower(HardwareMap hardwareMap, Class<?> FConstants, Class<?> LConstants) {
+        setupConstants(FConstants, LConstants);
+        switch (FollowerConstants.drivetrain) {
+            case MECANUM:
+                this.drivetrain = new Mecanum(hardwareMap);
+                break;
+            default:
+                this.drivetrain = new Mecanum(hardwareMap);
+                break;
+        }
+
+        this.errorHandler = new ErrorHandler(FollowerConstants.maxPower, FollowerConstants.mass, useDrive, useHeading, useTranslational, useCentripetal);
+        this.tracker = new Tracker(hardwareMap);
+        this.dashboardPoseTracker = new DashboardPoseTracker(tracker);
+
+        teleopDriveValues = new double[3];
+        teleopDriveVector = new Vector();
+        teleopHeadingVector = new Vector();
+
+        drivetrain.initialize();
+        breakFollowing();
+    }
+
+
+
+    public Follower(HardwareMap hardwareMap, Drivetrain drivetrain, Class<?> FConstants, Class<?> LConstants) {
+        setupConstants(FConstants, LConstants);
         this.drivetrain = drivetrain;
         this.errorHandler = new ErrorHandler(FollowerConstants.maxPower, FollowerConstants.mass, useDrive, useHeading, useTranslational, useCentripetal);
         this.tracker = new Tracker(hardwareMap);
@@ -83,7 +145,8 @@ public class Follower {
         breakFollowing();
     }
 
-    public Follower(HardwareMap hardwareMap, Drivetrain drivetrain, Localizer localizer) {
+    public Follower(HardwareMap hardwareMap, Drivetrain drivetrain, Localizer localizer, Class<?> FConstants, Class<?> LConstants) {
+        setupConstants(FConstants, LConstants);
         this.drivetrain = drivetrain;
         this.errorHandler = new ErrorHandler(FollowerConstants.maxPower, FollowerConstants.mass, useDrive, useHeading, useTranslational, useCentripetal);
         this.tracker = new Tracker(hardwareMap, localizer);
@@ -95,6 +158,15 @@ public class Follower {
         
         drivetrain.initialize();
         breakFollowing();
+    }
+
+    /**
+     * Setup constants for the Follower.
+     * @param FConstants the constants for the Follower
+     * @param LConstants the constants for the Localizer
+     */
+    private void setupConstants(Class<?> FConstants, Class<?> LConstants) {
+        Constants.setConstants(FConstants, LConstants);
     }
 
     /**
@@ -197,6 +269,29 @@ public class Follower {
             dashboardPoseTracker.update();
         }
 
+        // Add velocity and acceleration tracking
+        velocities.add(tracker.getVelocity());
+        if (velocities.size() > FollowerConstants.AVERAGED_VELOCITY_SAMPLE_NUMBER) {
+            velocities.remove(0);
+        }
+
+        accelerations.add(tracker.getAcceleration());
+        if (accelerations.size() > FollowerConstants.AVERAGED_VELOCITY_SAMPLE_NUMBER) {
+            accelerations.remove(0);
+        }
+
+        // Calculate average velocity and acceleration
+        calculateAveragedVelocityAndAcceleration();
+
+        // Add zero velocity detection
+        if (tracker.getVelocity().getMagnitude() < 0.1) {
+            if (zeroVelocityDetectedTimer == null) {
+                zeroVelocityDetectedTimer = new ElapsedTime();
+            }
+        } else {
+            zeroVelocityDetectedTimer = null;
+        }
+
         if (!teleopDrive) {
             if (currentPath != null) {
                 if (holdingPosition) {
@@ -275,10 +370,13 @@ public class Follower {
                 tracker.getPose().getHeading()
             ));
         }
+
+        debugLog();
     }
 
     public void breakFollowing() {
         teleopDrive = false;
+        drivetrain.setTeleopMode(false);
         drivetrain.setMotorsToFloat();
         holdingPosition = false;
         isBusy = false;
@@ -290,6 +388,7 @@ public class Follower {
     public void startTeleopDrive() {
         breakFollowing();
         teleopDrive = true;
+        drivetrain.setTeleopMode(true);
 
         if (FollowerConstants.useBrakeModeInTeleOp) {
             drivetrain.setMotorsToBrake();
@@ -581,5 +680,62 @@ public class Follower {
         } else {
             return null;
         }
+    }
+
+    public void resumePathFollowing() {
+        if (currentPath != null) {
+            isBusy = true;
+            reachedParametricPathEnd = false;
+            errorHandler.reset();
+            drivetrain.setMotorsToFloat();
+        }
+    }
+
+    public boolean isRobotStuck() {
+        return tracker.getVelocity().getMagnitude() < 0.1 && isBusy;
+    }
+
+    private void debugLog() {
+        if (logDebug) {
+            Log.d("Follower", "Current Pose: " + getPose());
+            Log.d("Follower", "Current Velocity: " + getVelocity());
+            Log.d("Follower", "Current Acceleration: " + getAcceleration());
+            Log.d("Follower", "Current Path: " + currentPath);
+            Log.d("Follower", "Current T Value: " + getCurrentTValue());
+            Log.d("Follower", "Current Path Number: " + getCurrentPathNumber());
+            Log.d("Follower", "Is Busy: " + isBusy);
+            Log.d("Follower", "Is Turning: " + isTurning);
+            Log.d("Follower", "Is Following Path Chain: " + followingPathChain);
+            Log.d("Follower", "Is Holding Position: " + holdingPosition);
+            Log.d("Follower", "Is Teleop Drive: " + teleopDrive);
+            Log.d("Follower", "Current Voltage: " + drivetrain.getVoltage());
+            Log.d("Follower", "Current Voltage Normalized: " + drivetrain.getVoltageNormalized());
+        }
+    }
+
+    private void calculateAveragedVelocityAndAcceleration() {
+        if (velocities.size() > 0) {
+            averageVelocity = new Vector();
+            for (Vector v : velocities) {
+                averageVelocity = MathFunctions.addVectors(averageVelocity, v);
+            }
+            averageVelocity = MathFunctions.scalarMultiplyVector(averageVelocity, 1.0 / velocities.size());
+        }
+
+        if (accelerations.size() > 0) {
+            averageAcceleration = new Vector();
+            for (Vector a : accelerations) {
+                averageAcceleration = MathFunctions.addVectors(averageAcceleration, a);
+            }
+            averageAcceleration = MathFunctions.scalarMultiplyVector(averageAcceleration, 1.0 / accelerations.size());
+        }
+    }
+
+    public Vector getAverageVelocity() {
+        return averageVelocity;
+    }
+
+    public Vector getAverageAcceleration() {
+        return averageAcceleration;
     }
 }

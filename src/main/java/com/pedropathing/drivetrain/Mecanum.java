@@ -85,10 +85,10 @@ public class Mecanum extends Drivetrain {
 
     @Override
     public void setDrivePowers(double[] drivePowers) {
-        this.drivePowers = drivePowers;
+        this.drivePowers = applyVoltageCompensation(drivePowers);
         for (int i = 0; i < motors.size(); i++) {
-            if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > motorCachingThreshold) {
-                motors.get(i).setPower(drivePowers[i]);
+            if (Math.abs(motors.get(i).getPower() - this.drivePowers[i]) > motorCachingThreshold) {
+                motors.get(i).setPower(this.drivePowers[i]);
             }
         }
     }

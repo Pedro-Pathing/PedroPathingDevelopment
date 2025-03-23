@@ -26,9 +26,13 @@ import com.pedropathing.util.Vector;
 @Config
 public class FollowerConstants {
 
-    /** The Localizer that the Follower & Pose Updater will use
+    /** The Drivetrain that the Follower will use
+     *  Default Value: Drivetrains.MECANUM */
+    public static Drivetrains drivetrain = Drivetrains.MECANUM;
+
+    /** The Localizer that the Follower & Tracker will use
      *  Default Value: Localizers.THREE_WHEEL */
-    public static Localizers localizers = Localizers.THREE_WHEEL;
+    public static Localizers localizer = Localizers.THREE_WHEEL;
 
     /** The name of the left front motor
      *  Default Value: "leftFront" */

@@ -1,6 +1,6 @@
 package com.pedropathing.localization;
-import static com.pedropathing.drivetrain.FollowerConstants.localizers;
 
+import com.pedropathing.drivetrain.FollowerConstants;
 import com.pedropathing.localization.localizers.TwoWheel;
 import com.pedropathing.pathgen.Pose;
 import com.pedropathing.drivetrain.util.Constants;
@@ -116,7 +116,7 @@ public class Tracker {
     }
 
     private static Localizer createLocalizer(HardwareMap hardwareMap) {
-        switch (localizers) {
+        switch (FollowerConstants.localizer) {
             case DRIVE_ENCODERS:
                 return new DriveEncoder(hardwareMap);
             case TWO_WHEEL:

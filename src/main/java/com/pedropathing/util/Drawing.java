@@ -5,7 +5,6 @@ import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 import com.pedropathing.drivetrain.Follower;
-import com.pedropathing.drivetrain.OldFollower;
 import com.pedropathing.pathgen.Pose;
 import com.pedropathing.pathgen.Path;
 import com.pedropathing.pathgen.PathChain;

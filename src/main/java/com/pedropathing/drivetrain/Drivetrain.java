@@ -2,6 +2,8 @@ package com.pedropathing.drivetrain;
 
 import com.pedropathing.util.Vector;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
  * This is the Drivetrain class. This class handles the running of the drivetrain.
@@ -13,9 +15,16 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public abstract class Drivetrain {
     protected HardwareMap hardwareMap;
     protected double maxPower = 1.0;
+    protected VoltageSensor voltageSensor;
+    protected double voltage = 0;
+    protected final ElapsedTime voltageTimer = new ElapsedTime();
+    protected static final double NOMINAL_VOLTAGE = 12.0;
+    protected static final double CACHE_INVALIDATE_SECONDS = 0.5;
+    protected boolean isTeleop = false;
 
     public Drivetrain(HardwareMap hardwareMap) {
         this.hardwareMap = hardwareMap;
+        this.voltageSensor = hardwareMap.voltageSensor.iterator().next();
     }
 
     /**
@@ -71,4 +80,63 @@ public abstract class Drivetrain {
      * Stop all motors
      */
     public abstract void stop();
+
+    /**
+     * Get the current battery voltage
+     * @return current battery voltage
+     */
+    public double getVoltage() {
+        if (voltageTimer.seconds() > CACHE_INVALIDATE_SECONDS) {
+            refreshVoltage();
+        }
+        return voltage;
+    }
+
+    /**
+     * Get the normalized voltage (current voltage / nominal voltage)
+     * @return normalized voltage
+     */
+    public double getVoltageNormalized() {
+        return getVoltage() / NOMINAL_VOLTAGE;
+    }
+
+    /**
+     * Refresh the cached voltage value
+     */
+    protected void refreshVoltage() {
+        voltage = voltageSensor.getVoltage();
+        voltageTimer.reset();
+    }
+
+    /**
+     * Set whether the drivetrain is in teleop mode
+     * @param isTeleop true if in teleop mode, false if in autonomous mode
+     */
+    public void setTeleopMode(boolean isTeleop) {
+        this.isTeleop = isTeleop;
+    }
+
+    /**
+     * Apply voltage compensation to motor powers
+     * @param powers array of motor powers to compensate
+     * @return compensated motor powers
+     */
+    protected double[] applyVoltageCompensation(double[] powers) {
+        if (powers == null) return null;
+        
+        // Only apply voltage compensation if enabled for the current mode
+        if ((isTeleop && !com.pedropathing.drivetrain.FollowerConstants.useVoltageCompensationInTeleOp) ||
+            (!isTeleop && !com.pedropathing.drivetrain.FollowerConstants.useVoltageCompensationInAuto)) {
+            return powers;
+        }
+        
+        double voltageScale = getVoltageNormalized();
+        double[] compensatedPowers = new double[powers.length];
+        
+        for (int i = 0; i < powers.length; i++) {
+            compensatedPowers[i] = powers[i] * voltageScale;
+        }
+        
+        return compensatedPowers;
+    }
 }
