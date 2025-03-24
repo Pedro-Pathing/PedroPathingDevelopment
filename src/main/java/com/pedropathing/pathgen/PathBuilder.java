@@ -26,8 +26,7 @@ public class PathBuilder {
      * Then calling "follower.pathBuilder.[INSERT PATH BUILDING METHODS].build();
      * Of course, you can split up the method calls onto separate lines for readability.
      */
-    public PathBuilder() {
-    }
+    public PathBuilder() {}
 
     /**
      * This adds a Path to the PathBuilder.
@@ -144,6 +143,15 @@ public class PathBuilder {
     }
 
     /**
+     * This sets the heading interpolation to custom on the last Path added to the PathBuilder.
+     * @param function A function that describes the target heading as a function of t, the parametric variable. Use a lambda expression here.
+     */
+    public PathBuilder setCustomHeadingInterpolation(Path.CustomHeadingInterpolationFunction function) {
+        this.paths.get(paths.size() - 1).setCustomHeadingInterpolation(function);
+        return this;
+    }
+
+    /**
      * This sets the deceleration multiplier on the last Path added to the PathBuilder.
      *
      * @param set This sets the multiplier for the goal for the deceleration of the robot.
@@ -251,14 +259,16 @@ public class PathBuilder {
     /**
      * Makes this decelerate based on the entire chain and not only the last path (recommended if the last path is short)
      */
-    public void setGlobalDeceleration() {
+    public PathBuilder setGlobalDeceleration() {
         this.decelerationType = PathChain.DecelerationType.GLOBAL;
+        return this;
     }
 
     /**
      * Sets no deceleration to the pathchain
      */
-    public void setNoDeceleration() {
+    public PathBuilder setNoDeceleration() {
         this.decelerationType = PathChain.DecelerationType.NONE;
+        return this;
     }
 }
