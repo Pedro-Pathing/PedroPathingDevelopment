@@ -1,22 +1,28 @@
 package com.pedropathing.localization.localizers;
 
-import static com.pedropathing.localization.constants.DriveEncoderConstants.*;
 import static com.pedropathing.drivetrain.FollowerConstants.leftFrontMotorName;
 import static com.pedropathing.drivetrain.FollowerConstants.leftRearMotorName;
 import static com.pedropathing.drivetrain.FollowerConstants.rightFrontMotorName;
 import static com.pedropathing.drivetrain.FollowerConstants.rightRearMotorName;
-
-
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.HardwareMap;
+import static com.pedropathing.localization.constants.DriveEncoderConstants.forwardTicksToInches;
+import static com.pedropathing.localization.constants.DriveEncoderConstants.leftFrontEncoderDirection;
+import static com.pedropathing.localization.constants.DriveEncoderConstants.leftRearEncoderDirection;
+import static com.pedropathing.localization.constants.DriveEncoderConstants.rightFrontEncoderDirection;
+import static com.pedropathing.localization.constants.DriveEncoderConstants.rightRearEncoderDirection;
+import static com.pedropathing.localization.constants.DriveEncoderConstants.robot_Length;
+import static com.pedropathing.localization.constants.DriveEncoderConstants.robot_Width;
+import static com.pedropathing.localization.constants.DriveEncoderConstants.strafeTicksToInches;
+import static com.pedropathing.localization.constants.DriveEncoderConstants.turnTicksToInches;
 
 import com.pedropathing.localization.Encoder;
 import com.pedropathing.localization.Localizer;
-import com.pedropathing.util.Matrix;
 import com.pedropathing.pathgen.Pose;
 import com.pedropathing.util.MathFunctions;
-import com.pedropathing.util.Vector;
+import com.pedropathing.util.Matrix;
 import com.pedropathing.util.NanoTimer;
+import com.pedropathing.util.Vector;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 /**
  * This is the DriveEncoderLocalizer class. This class extends the Localizer superclass and is a

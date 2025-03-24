@@ -5,7 +5,6 @@ import com.pedropathing.util.MathFunctions;
 import com.pedropathing.util.Vector;
 
 import java.util.ArrayList;
-import java.util.function.DoubleSupplier;
 
 /**
  * This is the Path class. This class handles containing information on the actual path the Follower

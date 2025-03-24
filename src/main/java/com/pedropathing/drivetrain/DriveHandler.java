@@ -17,7 +17,6 @@ import com.pedropathing.pathgen.Path;
 import com.pedropathing.pathgen.Pose;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.util.Vector;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import java.util.Arrays;
 

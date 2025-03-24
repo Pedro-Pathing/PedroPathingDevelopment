@@ -1,20 +1,32 @@
 package com.pedropathing.localization.localizers;
 
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.IMU_HardwareMapName;
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.IMU_Orientation;
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.forwardTicksToInches;
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.leftEncoderDirection;
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.leftEncoder_HardwareMapName;
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.leftY;
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.rightEncoderDirection;
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.rightEncoder_HardwareMapName;
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.rightY;
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.strafeEncoderDirection;
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.strafeEncoder_HardwareMapName;
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.strafeTicksToInches;
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.strafeX;
+import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.turnTicksToInches;
+
+import com.pedropathing.localization.Encoder;
+import com.pedropathing.localization.Localizer;
+import com.pedropathing.pathgen.Pose;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.util.Matrix;
+import com.pedropathing.util.NanoTimer;
+import com.pedropathing.util.Vector;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
-import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.*;
-
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
-import com.pedropathing.localization.Encoder;
-import com.pedropathing.localization.Localizer;
-import com.pedropathing.util.Matrix;
-import com.pedropathing.pathgen.Pose;
-import com.pedropathing.util.MathFunctions;
-import com.pedropathing.util.Vector;
-import com.pedropathing.util.NanoTimer;
 
 /**
  * This is the ThreeWheelIMU class. This class extends the Localizer superclass and is a

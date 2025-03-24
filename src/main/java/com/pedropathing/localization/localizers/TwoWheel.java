@@ -1,19 +1,28 @@
 package com.pedropathing.localization.localizers;
 
+import static com.pedropathing.localization.constants.TwoWheelConstants.IMU_HardwareMapName;
+import static com.pedropathing.localization.constants.TwoWheelConstants.IMU_Orientation;
+import static com.pedropathing.localization.constants.TwoWheelConstants.forwardEncoderDirection;
+import static com.pedropathing.localization.constants.TwoWheelConstants.forwardEncoder_HardwareMapName;
+import static com.pedropathing.localization.constants.TwoWheelConstants.forwardTicksToInches;
+import static com.pedropathing.localization.constants.TwoWheelConstants.forwardY;
+import static com.pedropathing.localization.constants.TwoWheelConstants.strafeEncoderDirection;
+import static com.pedropathing.localization.constants.TwoWheelConstants.strafeEncoder_HardwareMapName;
+import static com.pedropathing.localization.constants.TwoWheelConstants.strafeTicksToInches;
+import static com.pedropathing.localization.constants.TwoWheelConstants.strafeX;
+
+import com.pedropathing.localization.Encoder;
+import com.pedropathing.localization.Localizer;
+import com.pedropathing.pathgen.Pose;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.util.Matrix;
+import com.pedropathing.util.NanoTimer;
+import com.pedropathing.util.Vector;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
-import static com.pedropathing.localization.constants.TwoWheelConstants.*;
-
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import com.pedropathing.localization.Encoder;
-import com.pedropathing.localization.Localizer;
-import com.pedropathing.util.Matrix;
-import com.pedropathing.pathgen.Pose;
-import com.pedropathing.util.MathFunctions;
-import com.pedropathing.util.Vector;
-import com.pedropathing.util.NanoTimer;
 
 /**
  * This is the TwoWheel class. This class extends the Localizer superclass and is a

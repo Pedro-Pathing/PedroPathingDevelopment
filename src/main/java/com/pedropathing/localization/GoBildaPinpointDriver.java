@@ -30,8 +30,8 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
-import com.pedropathing.util.MathFunctions;
 import com.pedropathing.pathgen.Pose;
+import com.pedropathing.util.MathFunctions;
 import com.qualcomm.hardware.lynx.LynxI2cDeviceSynch;
 import com.qualcomm.hardware.lynx.LynxNackException;
 import com.qualcomm.robotcore.hardware.I2cAddr;

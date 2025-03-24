@@ -1,13 +1,18 @@
 package com.pedropathing.localization.localizers;
 
-import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
-import com.qualcomm.robotcore.hardware.HardwareMap;
+import static com.pedropathing.localization.constants.OTOSConstants.angleUnit;
+import static com.pedropathing.localization.constants.OTOSConstants.angularScalar;
+import static com.pedropathing.localization.constants.OTOSConstants.hardwareMapName;
+import static com.pedropathing.localization.constants.OTOSConstants.linearScalar;
+import static com.pedropathing.localization.constants.OTOSConstants.linearUnit;
+import static com.pedropathing.localization.constants.OTOSConstants.offset;
 
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.pathgen.Pose;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.util.Vector;
-import static com.pedropathing.localization.constants.OTOSConstants.*;
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 /**
  * This is the OTOSLocalizer class. This class extends the Localizer superclass and is a

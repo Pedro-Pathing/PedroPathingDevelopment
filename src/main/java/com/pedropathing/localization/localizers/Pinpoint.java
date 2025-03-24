@@ -1,17 +1,27 @@
 package com.pedropathing.localization.localizers;
 
 
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import static com.pedropathing.localization.constants.PinpointConstants.*;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import static com.pedropathing.localization.constants.PinpointConstants.customEncoderResolution;
+import static com.pedropathing.localization.constants.PinpointConstants.distanceUnit;
+import static com.pedropathing.localization.constants.PinpointConstants.encoderResolution;
+import static com.pedropathing.localization.constants.PinpointConstants.forwardEncoderDirection;
+import static com.pedropathing.localization.constants.PinpointConstants.forwardY;
+import static com.pedropathing.localization.constants.PinpointConstants.hardwareMapName;
+import static com.pedropathing.localization.constants.PinpointConstants.strafeEncoderDirection;
+import static com.pedropathing.localization.constants.PinpointConstants.strafeX;
+import static com.pedropathing.localization.constants.PinpointConstants.useCustomEncoderResolution;
+import static com.pedropathing.localization.constants.PinpointConstants.useYawScalar;
+import static com.pedropathing.localization.constants.PinpointConstants.yawScalar;
 
 import com.pedropathing.localization.GoBildaPinpointDriver;
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.pathgen.Pose;
 import com.pedropathing.util.MathFunctions;
-import com.pedropathing.util.Vector;
 import com.pedropathing.util.NanoTimer;
+import com.pedropathing.util.Vector;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.Objects;
 

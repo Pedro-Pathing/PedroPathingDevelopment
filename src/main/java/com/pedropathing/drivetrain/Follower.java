@@ -1,9 +1,6 @@
 package com.pedropathing.drivetrain;
 
-import static com.pedropathing.drivetrain.Drivetrains.MECANUM;
-import static com.pedropathing.drivetrain.FollowerConstants.cacheInvalidateSeconds;
 import static com.pedropathing.drivetrain.FollowerConstants.forwardZeroPowerAcceleration;
-import static com.pedropathing.drivetrain.FollowerConstants.nominalVoltage;
 
 import android.util.Log;
 
@@ -12,20 +9,20 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.drivetrain.util.Constants;
 import com.pedropathing.drivetrain.util.CustomFilteredPIDFCoefficients;
 import com.pedropathing.drivetrain.util.CustomPIDFCoefficients;
+import com.pedropathing.localization.Localizer;
 import com.pedropathing.localization.Tracker;
 import com.pedropathing.pathgen.BezierPoint;
+import com.pedropathing.pathgen.Path;
 import com.pedropathing.pathgen.PathBuilder;
 import com.pedropathing.pathgen.PathCallback;
-import com.pedropathing.util.MathFunctions;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.pedropathing.localization.Localizer;
-import com.pedropathing.pathgen.Path;
 import com.pedropathing.pathgen.PathChain;
-import com.pedropathing.pathgen.Pose;
 import com.pedropathing.pathgen.Point;
-import com.pedropathing.util.Vector;
-import com.pedropathing.util.Drawing;
+import com.pedropathing.pathgen.Pose;
 import com.pedropathing.util.DashboardPoseTracker;
+import com.pedropathing.util.Drawing;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.util.Vector;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;

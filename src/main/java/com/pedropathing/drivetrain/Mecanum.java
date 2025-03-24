@@ -1,13 +1,21 @@
 package com.pedropathing.drivetrain;
 
-import static com.pedropathing.drivetrain.FollowerConstants.*;
+import static com.pedropathing.drivetrain.FollowerConstants.leftFrontMotorDirection;
+import static com.pedropathing.drivetrain.FollowerConstants.leftFrontMotorName;
+import static com.pedropathing.drivetrain.FollowerConstants.leftRearMotorDirection;
+import static com.pedropathing.drivetrain.FollowerConstants.leftRearMotorName;
+import static com.pedropathing.drivetrain.FollowerConstants.motorCachingThreshold;
+import static com.pedropathing.drivetrain.FollowerConstants.rightFrontMotorDirection;
+import static com.pedropathing.drivetrain.FollowerConstants.rightFrontMotorName;
+import static com.pedropathing.drivetrain.FollowerConstants.rightRearMotorDirection;
+import static com.pedropathing.drivetrain.FollowerConstants.rightRearMotorName;
 
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.util.Vector;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
-import com.pedropathing.util.MathFunctions;
-import com.pedropathing.util.Vector;
 
 import java.util.Arrays;
 import java.util.List;

@@ -1,19 +1,25 @@
 package com.pedropathing.drivetrain;
 
-import static com.pedropathing.drivetrain.FollowerConstants.*;
+import static com.pedropathing.drivetrain.FollowerConstants.centripetalScaling;
+import static com.pedropathing.drivetrain.FollowerConstants.headingPIDFCoefficients;
+import static com.pedropathing.drivetrain.FollowerConstants.headingPIDFFeedForward;
+import static com.pedropathing.drivetrain.FollowerConstants.headingPIDFSwitch;
+import static com.pedropathing.drivetrain.FollowerConstants.secondaryHeadingPIDFCoefficients;
+import static com.pedropathing.drivetrain.FollowerConstants.secondaryHeadingPIDFFeedForward;
+import static com.pedropathing.drivetrain.FollowerConstants.secondaryTranslationalPIDFCoefficients;
+import static com.pedropathing.drivetrain.FollowerConstants.secondaryTranslationalPIDFFeedForward;
+import static com.pedropathing.drivetrain.FollowerConstants.translationalPIDFCoefficients;
+import static com.pedropathing.drivetrain.FollowerConstants.translationalPIDFFeedForward;
+import static com.pedropathing.drivetrain.FollowerConstants.translationalPIDFSwitch;
+import static com.pedropathing.drivetrain.FollowerConstants.useSecondaryHeadingPID;
+import static com.pedropathing.drivetrain.FollowerConstants.useSecondaryTranslationalPID;
 
-import com.pedropathing.drivetrain.util.CustomFilteredPIDFCoefficients;
 import com.pedropathing.drivetrain.util.CustomPIDFCoefficients;
-import com.pedropathing.drivetrain.util.FilteredPIDFController;
-import com.pedropathing.drivetrain.util.KalmanFilter;
 import com.pedropathing.drivetrain.util.PIDFController;
 import com.pedropathing.pathgen.Path;
-import com.pedropathing.pathgen.Point;
 import com.pedropathing.pathgen.Pose;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.util.Vector;
-
-import java.util.Arrays;
 
 /**
  * This is the ErrorHandler class. This class handles the error correction for the drivetrain.

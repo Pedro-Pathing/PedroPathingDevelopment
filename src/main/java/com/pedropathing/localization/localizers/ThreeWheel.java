@@ -1,17 +1,27 @@
 package com.pedropathing.localization.localizers;
 
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
-import static com.pedropathing.localization.constants.ThreeWheelConstants.*;
+import static com.pedropathing.localization.constants.ThreeWheelConstants.forwardTicksToInches;
+import static com.pedropathing.localization.constants.ThreeWheelConstants.leftEncoderDirection;
+import static com.pedropathing.localization.constants.ThreeWheelConstants.leftEncoder_HardwareMapName;
+import static com.pedropathing.localization.constants.ThreeWheelConstants.leftY;
+import static com.pedropathing.localization.constants.ThreeWheelConstants.rightEncoderDirection;
+import static com.pedropathing.localization.constants.ThreeWheelConstants.rightEncoder_HardwareMapName;
+import static com.pedropathing.localization.constants.ThreeWheelConstants.rightY;
+import static com.pedropathing.localization.constants.ThreeWheelConstants.strafeEncoderDirection;
+import static com.pedropathing.localization.constants.ThreeWheelConstants.strafeEncoder_HardwareMapName;
+import static com.pedropathing.localization.constants.ThreeWheelConstants.strafeTicksToInches;
+import static com.pedropathing.localization.constants.ThreeWheelConstants.strafeX;
+import static com.pedropathing.localization.constants.ThreeWheelConstants.turnTicksToInches;
 
 import com.pedropathing.localization.Encoder;
 import com.pedropathing.localization.Localizer;
-import com.pedropathing.util.Matrix;
 import com.pedropathing.pathgen.Pose;
 import com.pedropathing.util.MathFunctions;
-import com.pedropathing.util.Vector;
+import com.pedropathing.util.Matrix;
 import com.pedropathing.util.NanoTimer;
+import com.pedropathing.util.Vector;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 /**
  * This is the ThreeWheel class. This class extends the Localizer superclass and is a

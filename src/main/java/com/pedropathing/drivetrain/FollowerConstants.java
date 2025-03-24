@@ -6,10 +6,10 @@ import com.pedropathing.drivetrain.util.CustomFilteredPIDFCoefficients;
 import com.pedropathing.drivetrain.util.CustomPIDFCoefficients;
 import com.pedropathing.drivetrain.util.KalmanFilterParameters;
 import com.pedropathing.localization.Localizers;
-import com.pedropathing.util.MathFunctions;
 import com.pedropathing.pathgen.Point;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.pedropathing.util.MathFunctions;
 import com.pedropathing.util.Vector;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 /**
  * This is the FollowerConstants class. It holds many constants and parameters for various parts of
