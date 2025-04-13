@@ -10,6 +10,8 @@ import com.pedropathing.util.CustomPIDFCoefficients;
 import com.pedropathing.util.KalmanFilterParameters;
 import com.qualcomm.robotcore.hardware.DcMotorSimple.Direction;
 
+import java.util.Objects;
+
 public final class FollowerConstants {
 
     @FunctionalInterface
@@ -17,8 +19,25 @@ public final class FollowerConstants {
         void configure(FollowerConstants constants);
     }
 
+    private static <T> void requireNotNull(T object, String name) {
+        Objects.requireNonNull(object, name + " must be initialized.");
+    }
+
+    private static void requireNotZero(double number, String name) {
+        if (number == 0) throw new IllegalArgumentException(name + " must be initialized.");
+    }
+
     public FollowerConstants(Configurator configurator) {
         configurator.configure(this);
+        requireNotNull(leftFrontMotorName, "leftFrontMotorName");
+        requireNotNull(leftRearMotorName, "leftRearMotorName");
+        requireNotNull(rightFrontMotorName, "rightFrontMotorName");
+        requireNotNull(rightRearMotorName, "rightRearMotorName");
+        requireNotNull(leftFrontMotorDirection, "leftFrontMotorDirection");
+        requireNotNull(leftRearMotorDirection, "leftRearMotorDirection");
+        requireNotNull(rightFrontMotorDirection, "rightFrontMotorDirection");
+        requireNotNull(rightRearMotorDirection, "rightRearMotorDirection");
+        requireNotZero(mass, "mass");
     }
 
     // region motors
@@ -94,14 +113,14 @@ public final class FollowerConstants {
     public boolean useSecondaryHeadingPID = false;
     public boolean useSecondaryDrivePID = false;
 
-    public double translationalPIDSwitch = 3;
+    public double translationalPIDFSwitch = 3;
     public CustomPIDFCoefficients secondaryTranslationalPIDFCoefficients =
             new CustomPIDFCoefficients(0.3, 0, 0.01, 0);
     public CustomPIDFCoefficients secondaryTranslationalIntegral =
             new CustomPIDFCoefficients(0, 0, 0, 0);
     public double secondaryTranslationalPIDFFeedForward = 0.015;
 
-    public double headingPIDSwitch = PI / 20;
+    public double headingPIDFSwitch = PI / 20;
     public CustomPIDFCoefficients secondaryHeadingPIDFCoefficients =
             new CustomPIDFCoefficients(5, 0, 0.08, 0);
     public double secondaryHeadingPIDFFeedForward = 0.01;
@@ -112,7 +131,7 @@ public final class FollowerConstants {
     // endregion
 
     // region options
-    public boolean useBreakModeInTeleOp = false;
+    public boolean useBrakeModeInTeleOp = false;
     public boolean automaticHoldEnd = true;
     public boolean useVoltageCompensationInAuto = false;
     public boolean useVoltageCompensationInTeleOp = false;
@@ -122,4 +141,9 @@ public final class FollowerConstants {
     public double cacheInvalidateSeconds = 0.5;
     public double turnHeadingErrorThreshold = 0.01;
     public double decelerationStartMultiplier = 1;
+
+    public int AVERAGED_VELOCITY_SAMPLE_NUMBER = 8;
+    public int BEZIER_CURVE_SEARCH_LIMIT = 10;
+    public int APPROXIMATION_STEPS = 1000;
+
 }
