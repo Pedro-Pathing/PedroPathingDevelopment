@@ -1,5 +1,7 @@
 package com.pedropathing.constants;
 
+import static com.pedropathing.constants.ConstantsUtils.requireNotNull;
+import static com.pedropathing.constants.ConstantsUtils.requireNotZero;
 import static java.lang.Math.PI;
 
 import com.pedropathing.pathgen.MathFunctions;
@@ -14,20 +16,7 @@ import java.util.Objects;
 
 public final class FollowerConstants {
 
-    @FunctionalInterface
-    public interface Configurator {
-        void configure(FollowerConstants constants);
-    }
-
-    private static <T> void requireNotNull(T object, String name) {
-        Objects.requireNonNull(object, name + " must be initialized.");
-    }
-
-    private static void requireNotZero(double number, String name) {
-        if (number == 0) throw new IllegalArgumentException(name + " must be initialized.");
-    }
-
-    public FollowerConstants(Configurator configurator) {
+    public FollowerConstants(Configurator<FollowerConstants> configurator) {
         configurator.configure(this);
         requireNotNull(leftFrontMotorName, "leftFrontMotorName");
         requireNotNull(leftRearMotorName, "leftRearMotorName");
