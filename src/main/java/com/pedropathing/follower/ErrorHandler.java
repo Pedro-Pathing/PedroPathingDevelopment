@@ -1,20 +1,6 @@
 package com.pedropathing.follower;
 
-import static com.pedropathing.follower.FollowerConstants.drivePIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.drivePIDFSwitch;
-import static com.pedropathing.follower.FollowerConstants.forwardZeroPowerAcceleration;
-import static com.pedropathing.follower.FollowerConstants.headingPIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.headingPIDFSwitch;
-import static com.pedropathing.follower.FollowerConstants.lateralZeroPowerAcceleration;
-import static com.pedropathing.follower.FollowerConstants.secondaryDrivePIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.secondaryHeadingPIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.secondaryTranslationalPIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.translationalPIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.translationalPIDFSwitch;
-import static com.pedropathing.follower.FollowerConstants.useSecondaryDrivePID;
-import static com.pedropathing.follower.FollowerConstants.useSecondaryHeadingPID;
-import static com.pedropathing.follower.FollowerConstants.useSecondaryTranslationalPID;
-
+import com.pedropathing.constants.FollowerConstants;
 import com.pedropathing.localization.Pose;
 import com.pedropathing.localization.PoseUpdater;
 import com.pedropathing.pathgen.MathFunctions;
@@ -55,7 +41,6 @@ public class ErrorHandler {
     public Vector translationalVector;
     public Vector centripetalVector;
     public Vector correctiveVector;
-    private final int AVERAGED_VELOCITY_SAMPLE_NUMBER = FollowerConstants.AVERAGED_VELOCITY_SAMPLE_NUMBER;;
     private double previousSecondaryTranslationalIntegral;
     private double previousTranslationalIntegral;
     private double[] teleopDriveValues;
@@ -84,11 +69,14 @@ public class ErrorHandler {
     private FilteredPIDFController secondaryDrivePIDF;
     private FilteredPIDFController drivePIDF;
 
+    private final FollowerConstants constants;
 
-    public ErrorHandler(PoseUpdater poseUpdater, Drivetrain drivetrain) {
+    public ErrorHandler(PoseUpdater poseUpdater, Drivetrain drivetrain,
+                        FollowerConstants constants) {
         this.poseUpdater = poseUpdater;
         this.drivetrain = drivetrain;
-        driveKalmanFilter = new KalmanFilter(FollowerConstants.driveKalmanFilterParameters);
+        this.constants = constants;
+        driveKalmanFilter = new KalmanFilter(constants.driveKalmanFilterParameters);
     }
 
     public void update(NewFollower follower) {
@@ -130,10 +118,10 @@ public class ErrorHandler {
         Arrays.fill(driveErrors, 0);
         driveKalmanFilter.reset();
 
-        for (int i = 0; i < AVERAGED_VELOCITY_SAMPLE_NUMBER; i++) {
+        for (int i = 0; i < constants.AVERAGED_VELOCITY_SAMPLE_NUMBER; i++) {
             velocities.add(new Vector());
         }
-        for (int i = 0; i < AVERAGED_VELOCITY_SAMPLE_NUMBER / 2; i++) {
+        for (int i = 0; i < constants.AVERAGED_VELOCITY_SAMPLE_NUMBER / 2; i++) {
             accelerations.add(new Vector());
         }
 
@@ -183,7 +171,7 @@ public class ErrorHandler {
 
                 distanceToGoal = remainingLength + currentPath.length() * (1 - currentPath.getClosestPointTValue());
 
-                if (distanceToGoal >= Math.abs(currentPathChain.getDecelerationStartMultiplier() * 3/2 * Math.pow(FollowerConstants.xMovement, 2) / forwardZeroPowerAcceleration)) {
+                if (distanceToGoal >= Math.abs(currentPathChain.getDecelerationStartMultiplier() * 3/2 * Math.pow(constants.xMovement, 2) / constants.forwardZeroPowerAcceleration)) {
                     return new Vector(maxPowerScaling, currentPath.getClosestPointTangentVector().getTheta());
                 }
             } else {
@@ -197,14 +185,15 @@ public class ErrorHandler {
 
         driveError = getDriveVelocityError(distanceToGoal);
 
-        if (Math.abs(driveError) < drivePIDFSwitch && useSecondaryDrivePID) {
+        if (Math.abs(driveError) < constants.drivePIDFSwitch && constants.useSecondaryDrivePID) {
             secondaryDrivePIDF.updateError(driveError);
-            driveVector = new Vector(MathFunctions.clamp(secondaryDrivePIDF.runPIDF() + secondaryDrivePIDFFeedForward * MathFunctions.getSign(driveError), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
+            driveVector =
+                    new Vector(MathFunctions.clamp(secondaryDrivePIDF.runPIDF() + constants.secondaryDrivePIDFFeedForward * MathFunctions.getSign(driveError), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
             return MathFunctions.copyVector(driveVector);
         }
 
         drivePIDF.updateError(driveError);
-        driveVector = new Vector(MathFunctions.clamp(drivePIDF.runPIDF() + drivePIDFFeedForward * MathFunctions.getSign(driveError), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
+        driveVector = new Vector(MathFunctions.clamp(drivePIDF.runPIDF() + constants.drivePIDFFeedForward * MathFunctions.getSign(driveError), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
         return MathFunctions.copyVector(driveVector);
     }
 
@@ -222,15 +211,15 @@ public class ErrorHandler {
 
         double forwardVelocity = MathFunctions.dotProduct(forwardHeadingVector, velocity);
         double forwardDistanceToGoal = MathFunctions.dotProduct(forwardHeadingVector, distanceToGoalVector);
-        double forwardVelocityGoal = MathFunctions.getSign(forwardDistanceToGoal) * Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * forwardZeroPowerAcceleration * (forwardDistanceToGoal <= 0 ? 1 : -1) * forwardDistanceToGoal));
-        double forwardVelocityZeroPowerDecay = forwardVelocity - MathFunctions.getSign(forwardDistanceToGoal) * Math.sqrt(Math.abs(Math.pow(forwardVelocity, 2) + 2 * forwardZeroPowerAcceleration * Math.abs(forwardDistanceToGoal)));
+        double forwardVelocityGoal = MathFunctions.getSign(forwardDistanceToGoal) * Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * constants.forwardZeroPowerAcceleration * (forwardDistanceToGoal <= 0 ? 1 : -1) * forwardDistanceToGoal));
+        double forwardVelocityZeroPowerDecay = forwardVelocity - MathFunctions.getSign(forwardDistanceToGoal) * Math.sqrt(Math.abs(Math.pow(forwardVelocity, 2) + 2 * constants.forwardZeroPowerAcceleration * Math.abs(forwardDistanceToGoal)));
 
         Vector lateralHeadingVector = new Vector(1.0, poseUpdater.getPose().getHeading() - Math.PI / 2);
         double lateralVelocity = MathFunctions.dotProduct(lateralHeadingVector, velocity);
         double lateralDistanceToGoal = MathFunctions.dotProduct(lateralHeadingVector, distanceToGoalVector);
 
-        double lateralVelocityGoal = MathFunctions.getSign(lateralDistanceToGoal) * Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * lateralZeroPowerAcceleration * (lateralDistanceToGoal <= 0 ? 1 : -1) * lateralDistanceToGoal));
-        double lateralVelocityZeroPowerDecay = lateralVelocity - MathFunctions.getSign(lateralDistanceToGoal) * Math.sqrt(Math.abs(Math.pow(lateralVelocity, 2) + 2 * lateralZeroPowerAcceleration * Math.abs(lateralDistanceToGoal)));
+        double lateralVelocityGoal = MathFunctions.getSign(lateralDistanceToGoal) * Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * constants.lateralZeroPowerAcceleration * (lateralDistanceToGoal <= 0 ? 1 : -1) * lateralDistanceToGoal));
+        double lateralVelocityZeroPowerDecay = lateralVelocity - MathFunctions.getSign(lateralDistanceToGoal) * Math.sqrt(Math.abs(Math.pow(lateralVelocity, 2) + 2 * constants.lateralZeroPowerAcceleration * Math.abs(lateralDistanceToGoal)));
 
         Vector forwardVelocityError = new Vector(forwardVelocityGoal - forwardVelocityZeroPowerDecay - forwardVelocity, forwardHeadingVector.getTheta());
         Vector lateralVelocityError = new Vector(lateralVelocityGoal - lateralVelocityZeroPowerDecay - lateralVelocity, lateralHeadingVector.getTheta());
@@ -263,13 +252,13 @@ public class ErrorHandler {
     public Vector getHeadingVector() {
         if (!useHeading) return new Vector();
         headingError = MathFunctions.getTurnDirection(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal()) * MathFunctions.getSmallestAngleDifference(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal());
-        if (Math.abs(headingError) < headingPIDFSwitch && useSecondaryHeadingPID) {
+        if (Math.abs(headingError) < constants.headingPIDFSwitch && constants.useSecondaryHeadingPID) {
             secondaryHeadingPIDF.updateError(headingError);
-            headingVector = new Vector(MathFunctions.clamp(secondaryHeadingPIDF.runPIDF() + secondaryHeadingPIDFFeedForward * MathFunctions.getTurnDirection(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal()), -maxPowerScaling, maxPowerScaling), poseUpdater.getPose().getHeading());
+            headingVector = new Vector(MathFunctions.clamp(secondaryHeadingPIDF.runPIDF() + constants.secondaryHeadingPIDFFeedForward * MathFunctions.getTurnDirection(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal()), -maxPowerScaling, maxPowerScaling), poseUpdater.getPose().getHeading());
             return MathFunctions.copyVector(headingVector);
         }
         headingPIDF.updateError(headingError);
-        headingVector = new Vector(MathFunctions.clamp(headingPIDF.runPIDF() + headingPIDFFeedForward * MathFunctions.getTurnDirection(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal()), -maxPowerScaling, maxPowerScaling), poseUpdater.getPose().getHeading());
+        headingVector = new Vector(MathFunctions.clamp(headingPIDF.runPIDF() + constants.headingPIDFFeedForward * MathFunctions.getTurnDirection(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal()), -maxPowerScaling, maxPowerScaling), poseUpdater.getPose().getHeading());
         return MathFunctions.copyVector(headingVector);
     }
 
@@ -317,13 +306,13 @@ public class ErrorHandler {
             translationalIntegralVector = MathFunctions.subtractVectors(translationalIntegralVector, new Vector(MathFunctions.dotProduct(translationalIntegralVector, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), currentPath.getClosestPointTangentVector().getTheta()));
         }
 
-        if (MathFunctions.distance(poseUpdater.getPose(), closestPose) < translationalPIDFSwitch && useSecondaryTranslationalPID) {
+        if (MathFunctions.distance(poseUpdater.getPose(), closestPose) < constants.translationalPIDFSwitch && constants.useSecondaryTranslationalPID) {
             secondaryTranslationalIntegral.updateError(translationalVector.getMagnitude());
             secondaryTranslationalIntegralVector = MathFunctions.addVectors(secondaryTranslationalIntegralVector, new Vector(secondaryTranslationalIntegral.runPIDF() - previousSecondaryTranslationalIntegral, translationalVector.getTheta()));
             previousSecondaryTranslationalIntegral = secondaryTranslationalIntegral.runPIDF();
 
             secondaryTranslationalPIDF.updateError(translationalVector.getMagnitude());
-            translationalVector.setMagnitude(secondaryTranslationalPIDF.runPIDF() + secondaryTranslationalPIDFFeedForward);
+            translationalVector.setMagnitude(secondaryTranslationalPIDF.runPIDF() + constants.secondaryTranslationalPIDFFeedForward);
             translationalVector = MathFunctions.addVectors(translationalVector, secondaryTranslationalIntegralVector);
         } else {
             translationalIntegral.updateError(translationalVector.getMagnitude());
@@ -331,7 +320,7 @@ public class ErrorHandler {
             previousTranslationalIntegral = translationalIntegral.runPIDF();
 
             translationalPIDF.updateError(translationalVector.getMagnitude());
-            translationalVector.setMagnitude(translationalPIDF.runPIDF() + translationalPIDFFeedForward);
+            translationalVector.setMagnitude(translationalPIDF.runPIDF() + constants.translationalPIDFFeedForward);
             translationalVector = MathFunctions.addVectors(translationalVector, translationalIntegralVector);
         }
 
@@ -374,7 +363,8 @@ public class ErrorHandler {
             curvature = (yDoublePrime) / (Math.pow(Math.sqrt(1 + Math.pow(yPrime, 2)), 3));
         }
         if (Double.isNaN(curvature)) return new Vector();
-        centripetalVector = new Vector(MathFunctions.clamp(centripetalScaling * FollowerConstants.mass * Math.pow(MathFunctions.dotProduct(poseUpdater.getVelocity(), MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), 2) * curvature, -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta() + Math.PI / 2 * MathFunctions.getSign(currentPath.getClosestPointNormalVector().getTheta()));
+        centripetalVector =
+                new Vector(MathFunctions.clamp(centripetalScaling * constants.mass * Math.pow(MathFunctions.dotProduct(poseUpdater.getVelocity(), MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), 2) * curvature, -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta() + Math.PI / 2 * MathFunctions.getSign(currentPath.getClosestPointNormalVector().getTheta()));
         return centripetalVector;
     }
 
