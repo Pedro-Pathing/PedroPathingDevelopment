@@ -1,62 +1,39 @@
 package com.pedropathing.localization.constants;
 
+import static com.pedropathing.constants.ConstantsUtils.requireNotNull;
+import static com.pedropathing.constants.ConstantsUtils.requireNotZero;
+
 import com.acmerobotics.dashboard.config.Config;
+import com.pedropathing.constants.Configurator;
 import com.pedropathing.localization.Encoder;
 
 /**
- * This is the ThreeWheelConstants class. It holds many constants and parameters for the Three Wheel Localizer.
- * @author Baron Henderson - 20077 The Indubitables
- * @version 1.0, 12/24/2024
+ * This is the ThreeWheelConstants class. It holds constants and parameters for the Three Wheel Localizer.
+ * Configurations are validated and initialized similarly to DriveEncoderConstants.
+ *
+ * @author Baron Henderson
+ * @version 2.0, 12/24/2024
  */
 
-@Config
-public class ThreeWheelConstants {
+public final class ThreeWheelConstants {
 
-    /** The number of inches per tick of the encoder for forward movement
-     * Default Value: .001989436789 */
-    public static double forwardTicksToInches = .001989436789;
+    public ThreeWheelConstants(Configurator<ThreeWheelConstants> configurator) {
+        configurator.configure(this);
+        requireNotNull(leftEncoder_HardwareMapName, "leftEncoder_HardwareMapName");
+        requireNotNull(rightEncoder_HardwareMapName, "rightEncoder_HardwareMapName");
+        requireNotNull(strafeEncoder_HardwareMapName, "strafeEncoder_HardwareMapName");
+    }
 
-    /** The number of inches per tick of the encoder for lateral movement (strafing)
-     * Default Value: .001989436789 */
-    public static double strafeTicksToInches = .001989436789;
-
-    /** The number of inches per tick of the encoder for turning
-     * Default Value: .001989436789 */
-    public static double turnTicksToInches = .001989436789;
-
-    /** The Y Offset of the Left Encoder (Deadwheel) from the center of the robot
-     * Default Value: 1 */
-    public static double leftY = 1;
-
-    /** The Y Offset of the Right Encoder (Deadwheel) from the center of the robot
-     * Default Value: -1 */
-    public static double rightY = -1;
-
-    /** The X Offset of the Strafe Encoder (Deadwheel) from the center of the robot
-     * Default Value: -2.5 */
-    public static double strafeX = -2.5;
-
-    /** The name of the Left Encoder in the hardware map (name of the motor port it is plugged into)
-     * Default Value: "leftFront" */
-    public static String leftEncoder_HardwareMapName = "leftFront";
-
-    /** The name of the Right Encoder in the hardware map (name of the motor port it is plugged into)
-     * Default Value: "rightRear" */
-    public static String rightEncoder_HardwareMapName = "rightRear";
-
-    /** The name of the Strafe Encoder in the hardware map (name of the motor port it is plugged into)
-     * Default Value: "rightFront" */
-    public static String strafeEncoder_HardwareMapName = "rightFront";
-
-    /** The direction of the Left Encoder
-     * Default Value: Encoder.REVERSE */
-    public static double leftEncoderDirection = Encoder.REVERSE;
-
-    /** The direction of the Right Encoder
-     * Default Value: Encoder.REVERSE */
-    public static double rightEncoderDirection = Encoder.REVERSE;
-
-    /** The direction of the Strafe Encoder
-     * Default Value: Encoder.FORWARD */
-    public static double strafeEncoderDirection = Encoder.FORWARD;
+    public double forwardTicksToInches = .001989436789;
+    public double strafeTicksToInches = .001989436789;
+    public double turnTicksToInches = .001989436789;
+    public double leftY = 1;
+    public double rightY = -1;
+    public double strafeX = -2.5;
+    public String leftEncoder_HardwareMapName;
+    public String rightEncoder_HardwareMapName;
+    public String strafeEncoder_HardwareMapName;
+    public double leftEncoderDirection = Encoder.REVERSE;
+    public double rightEncoderDirection = Encoder.REVERSE;
+    public double strafeEncoderDirection = Encoder.FORWARD;
 }

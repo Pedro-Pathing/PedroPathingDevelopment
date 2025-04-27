@@ -1,33 +1,27 @@
 package com.pedropathing.localization.localizers;
 
-import static com.pedropathing.localization.constants.DriveEncoderConstants.*;
-import static com.pedropathing.follower.FollowerConstants.leftFrontMotorName;
-import static com.pedropathing.follower.FollowerConstants.leftRearMotorName;
-import static com.pedropathing.follower.FollowerConstants.rightFrontMotorName;
-import static com.pedropathing.follower.FollowerConstants.rightRearMotorName;
-
-
-import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
+import com.pedropathing.constants.FollowerConstants;
 import com.pedropathing.localization.Encoder;
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.localization.Matrix;
 import com.pedropathing.localization.Pose;
+import com.pedropathing.localization.constants.DriveEncoderConstants;
 import com.pedropathing.pathgen.MathFunctions;
 import com.pedropathing.pathgen.Vector;
 import com.pedropathing.util.NanoTimer;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 /**
- * This is the DriveEncoderLocalizer class. This class extends the Localizer superclass and is a
+ * This is the DriveEncoderLocalizer class. This class implements the {@link Localizer} interface
+ * and is a
  * localizer that uses the drive encoder set up.
  *
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 4/2/2024
  */
 
-public class DriveEncoderLocalizer extends Localizer {
+public class DriveEncoderLocalizer implements Localizer {
     private HardwareMap hardwareMap;
     private Pose startPose;
     private Pose displacementPose;
@@ -40,11 +34,8 @@ public class DriveEncoderLocalizer extends Localizer {
     private Encoder leftRear;
     private Encoder rightRear;
     private double totalHeading;
-    public static double FORWARD_TICKS_TO_INCHES;
-    public static double STRAFE_TICKS_TO_INCHES;
-    public static double TURN_TICKS_TO_RADIANS;
-    public static double ROBOT_WIDTH;
-    public static double ROBOT_LENGTH;
+
+    private final DriveEncoderConstants constants;
 
     /**
      * This creates a new DriveEncoderLocalizer from a HardwareMap, with a starting Pose at (0,0)
@@ -52,36 +43,37 @@ public class DriveEncoderLocalizer extends Localizer {
      *
      * @param map the HardwareMap
      */
-    public DriveEncoderLocalizer(HardwareMap map) {
-        this(map, new Pose());
+    public DriveEncoderLocalizer(HardwareMap map, DriveEncoderConstants constants,
+                                 FollowerConstants followerConstants) {
+        this(map, new Pose(), constants, followerConstants);
     }
 
     /**
      * This creates a new DriveEncoderLocalizer from a HardwareMap and a Pose, with the Pose
      * specifying the starting pose of the localizer.
      *
-     * @param map the HardwareMap
+     * @param map          the HardwareMap
      * @param setStartPose the Pose to start from
      */
-    public DriveEncoderLocalizer(HardwareMap map, Pose setStartPose) {
+    public DriveEncoderLocalizer(HardwareMap map,
+                                 Pose setStartPose,
+                                 DriveEncoderConstants constants,
+                                 FollowerConstants followerConstants) {
         hardwareMap = map;
+        this.constants = constants;
+        leftFront = new Encoder(hardwareMap.get(DcMotorEx.class,
+                followerConstants.leftFrontMotorName));
+        leftRear = new Encoder(hardwareMap.get(DcMotorEx.class,
+                followerConstants.leftRearMotorName));
+        rightRear = new Encoder(hardwareMap.get(DcMotorEx.class,
+                followerConstants.rightRearMotorName));
+        rightFront = new Encoder(hardwareMap.get(DcMotorEx.class,
+                followerConstants.rightFrontMotorName));
 
-        FORWARD_TICKS_TO_INCHES = forwardTicksToInches;
-        STRAFE_TICKS_TO_INCHES = strafeTicksToInches;
-        TURN_TICKS_TO_RADIANS = turnTicksToInches;
-
-        ROBOT_WIDTH = robot_Width;
-        ROBOT_LENGTH = robot_Length;
-
-        leftFront = new Encoder(hardwareMap.get(DcMotorEx.class, leftFrontMotorName));
-        leftRear = new Encoder(hardwareMap.get(DcMotorEx.class, leftRearMotorName));
-        rightRear = new Encoder(hardwareMap.get(DcMotorEx.class, rightRearMotorName));
-        rightFront = new Encoder(hardwareMap.get(DcMotorEx.class, rightFrontMotorName));
-
-        leftFront.setDirection(leftFrontEncoderDirection);
-        leftRear.setDirection(leftRearEncoderDirection);
-        rightFront.setDirection(rightFrontEncoderDirection);
-        rightRear.setDirection(rightRearEncoderDirection);
+        leftFront.setDirection(constants.leftFrontEncoderDirection);
+        leftRear.setDirection(constants.leftRearEncoderDirection);
+        rightFront.setDirection(constants.rightFrontEncoderDirection);
+        rightRear.setDirection(constants.rightRearEncoderDirection);
 
         setStartPose(setStartPose);
         timer = new NanoTimer();
@@ -95,7 +87,6 @@ public class DriveEncoderLocalizer extends Localizer {
      *
      * @return returns the current pose estimate as a Pose
      */
-    @Override
     public Pose getPose() {
         return MathFunctions.addPoses(startPose, displacementPose);
     }
@@ -105,7 +96,6 @@ public class DriveEncoderLocalizer extends Localizer {
      *
      * @return returns the current velocity estimate as a Pose
      */
-    @Override
     public Pose getVelocity() {
         return currentVelocity.copy();
     }
@@ -115,7 +105,7 @@ public class DriveEncoderLocalizer extends Localizer {
      *
      * @return returns the current velocity estimate as a Vector
      */
-    @Override
+
     public Vector getVelocityVector() {
         return currentVelocity.getVector();
     }
@@ -126,7 +116,7 @@ public class DriveEncoderLocalizer extends Localizer {
      *
      * @param setStart the new start pose
      */
-    @Override
+
     public void setStartPose(Pose setStart) {
         startPose = setStart;
     }
@@ -137,7 +127,7 @@ public class DriveEncoderLocalizer extends Localizer {
      * @param heading the rotation of the Matrix
      */
     public void setPrevRotationMatrix(double heading) {
-        prevRotationMatrix = new Matrix(3,3);
+        prevRotationMatrix = new Matrix(3, 3);
         prevRotationMatrix.set(0, 0, Math.cos(heading));
         prevRotationMatrix.set(0, 1, -Math.sin(heading));
         prevRotationMatrix.set(1, 0, Math.sin(heading));
@@ -151,7 +141,7 @@ public class DriveEncoderLocalizer extends Localizer {
      *
      * @param setPose the new current pose estimate
      */
-    @Override
+
     public void setPose(Pose setPose) {
         displacementPose = MathFunctions.subtractPoses(setPose, startPose);
         resetEncoders();
@@ -162,7 +152,7 @@ public class DriveEncoderLocalizer extends Localizer {
      * change position of the Encoders. Then, the robot's global change in position is calculated
      * using the pose exponential method.
      */
-    @Override
+
     public void update() {
         deltaTimeNano = timer.getElapsedTime();
         timer.resetTimer();
@@ -172,7 +162,7 @@ public class DriveEncoderLocalizer extends Localizer {
         Matrix globalDeltas;
         setPrevRotationMatrix(getPose().getHeading());
 
-        Matrix transformation = new Matrix(3,3);
+        Matrix transformation = new Matrix(3, 3);
         if (Math.abs(robotDeltas.get(2, 0)) < 0.001) {
             transformation.set(0, 0, 1.0 - (Math.pow(robotDeltas.get(2, 0), 2) / 6.0));
             transformation.set(0, 1, -robotDeltas.get(2, 0) / 2.0);
@@ -181,16 +171,25 @@ public class DriveEncoderLocalizer extends Localizer {
             transformation.set(2, 2, 1.0);
         } else {
             transformation.set(0, 0, Math.sin(robotDeltas.get(2, 0)) / robotDeltas.get(2, 0));
-            transformation.set(0, 1, (Math.cos(robotDeltas.get(2, 0)) - 1.0) / robotDeltas.get(2, 0));
-            transformation.set(1, 0, (1.0 - Math.cos(robotDeltas.get(2, 0))) / robotDeltas.get(2, 0));
+            transformation.set(0,
+                    1,
+                    (Math.cos(robotDeltas.get(2, 0)) - 1.0) / robotDeltas.get(2, 0));
+            transformation.set(1,
+                    0,
+                    (1.0 - Math.cos(robotDeltas.get(2, 0))) / robotDeltas.get(2, 0));
             transformation.set(1, 1, Math.sin(robotDeltas.get(2, 0)) / robotDeltas.get(2, 0));
             transformation.set(2, 2, 1.0);
         }
 
-        globalDeltas = Matrix.multiply(Matrix.multiply(prevRotationMatrix, transformation), robotDeltas);
+        globalDeltas = Matrix.multiply(Matrix.multiply(prevRotationMatrix, transformation),
+                robotDeltas);
 
-        displacementPose.add(new Pose(globalDeltas.get(0, 0), globalDeltas.get(1, 0), globalDeltas.get(2, 0)));
-        currentVelocity = new Pose(globalDeltas.get(0, 0) / (deltaTimeNano / Math.pow(10.0, 9)), globalDeltas.get(1, 0) / (deltaTimeNano / Math.pow(10.0, 9)), globalDeltas.get(2, 0) / (deltaTimeNano / Math.pow(10.0, 9)));
+        displacementPose.add(new Pose(globalDeltas.get(0, 0),
+                globalDeltas.get(1, 0),
+                globalDeltas.get(2, 0)));
+        currentVelocity = new Pose(globalDeltas.get(0, 0) / (deltaTimeNano / Math.pow(10.0, 9)),
+                globalDeltas.get(1, 0) / (deltaTimeNano / Math.pow(10.0, 9)),
+                globalDeltas.get(2, 0) / (deltaTimeNano / Math.pow(10.0, 9)));
 
         totalHeading += globalDeltas.get(2, 0);
     }
@@ -222,19 +221,26 @@ public class DriveEncoderLocalizer extends Localizer {
      * @return returns a Matrix containing the robot relative movement.
      */
     public Matrix getRobotDeltas() {
-        Matrix returnMatrix = new Matrix(3,1);
+        Matrix returnMatrix = new Matrix(3, 1);
         // x/forward movement
-        returnMatrix.set(0,0, FORWARD_TICKS_TO_INCHES * (leftFront.getDeltaPosition() + rightFront.getDeltaPosition() + leftRear.getDeltaPosition() + rightRear.getDeltaPosition()));
+        returnMatrix.set(0,
+                0,
+                constants.forwardTicksToInches * (leftFront.getDeltaPosition() + rightFront.getDeltaPosition() + leftRear.getDeltaPosition() + rightRear.getDeltaPosition()));
         //y/strafe movement
-        returnMatrix.set(1,0, STRAFE_TICKS_TO_INCHES * (-leftFront.getDeltaPosition() + rightFront.getDeltaPosition() + leftRear.getDeltaPosition() - rightRear.getDeltaPosition()));
+        returnMatrix.set(1,
+                0,
+                constants.strafeTicksToInches * (-leftFront.getDeltaPosition() + rightFront.getDeltaPosition() + leftRear.getDeltaPosition() - rightRear.getDeltaPosition()));
         // theta/turning
-        returnMatrix.set(2,0, TURN_TICKS_TO_RADIANS * ((-leftFront.getDeltaPosition() + rightFront.getDeltaPosition() - leftRear.getDeltaPosition() + rightRear.getDeltaPosition()) / (ROBOT_WIDTH + ROBOT_LENGTH)));
+        returnMatrix.set(2,
+                0,
+                constants.turnTicksToInches * ((-leftFront.getDeltaPosition() + rightFront.getDeltaPosition() - leftRear.getDeltaPosition() + rightRear.getDeltaPosition()) / (constants.robot_Width + constants.robot_Length)));
         return returnMatrix;
     }
 
     /**
      * This returns how far the robot has turned in radians, in a number not clamped between 0 and
-     * 2 * pi radians. This is used for some tuning things and nothing actually within the following.
+     * 2 * pi radians. This is used for some tuning things and nothing actually within the
+     * following.
      *
      * @return returns how far the robot has turned in total, in radians.
      */
@@ -249,7 +255,7 @@ public class DriveEncoderLocalizer extends Localizer {
      * @return returns the forward ticks to inches multiplier
      */
     public double getForwardMultiplier() {
-        return FORWARD_TICKS_TO_INCHES;
+        return constants.forwardTicksToInches;
     }
 
     /**
@@ -259,7 +265,7 @@ public class DriveEncoderLocalizer extends Localizer {
      * @return returns the lateral/strafe ticks to inches multiplier
      */
     public double getLateralMultiplier() {
-        return STRAFE_TICKS_TO_INCHES;
+        return constants.strafeTicksToInches;
     }
 
     /**
@@ -269,7 +275,7 @@ public class DriveEncoderLocalizer extends Localizer {
      * @return returns the turning ticks to radians multiplier
      */
     public double getTurningMultiplier() {
-        return TURN_TICKS_TO_RADIANS;
+        return constants.turnTicksToInches;
     }
 
     /**
@@ -284,6 +290,7 @@ public class DriveEncoderLocalizer extends Localizer {
      * @return returns whether the robot's position is NaN
      */
     public boolean isNAN() {
-        return Double.isNaN(getPose().getX()) || Double.isNaN(getPose().getY()) || Double.isNaN(getPose().getHeading());
+        return Double.isNaN(getPose().getX()) || Double.isNaN(getPose().getY()) || Double.isNaN(
+                getPose().getHeading());
     }
 }
