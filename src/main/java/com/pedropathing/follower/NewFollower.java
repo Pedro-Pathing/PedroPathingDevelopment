@@ -119,6 +119,7 @@ public class NewFollower {
     private ElapsedTime zeroVelocityDetectedTimer;
 
     private final FollowerConstants constants;
+    private Runnable resetFollowing = null;
 
     /**
      * This creates a new Follower given a HardwareMap.
@@ -452,13 +453,48 @@ public class NewFollower {
     }
 
     /**
-     * Resumes pathing
+     * Resumes pathing, can only be called after pausePathFollowing()
      */
     public void resumePathFollowing() {
-        pathStartTimes = new long[currentPathChain.size()];
-        pathStartTimes[0] = System.currentTimeMillis();
-        isBusy = true;
-        closestPose = currentPath.getClosestPoint(poseUpdater.getPose(), constants.BEZIER_CURVE_SEARCH_LIMIT);
+        if (resetFollowing != null) {
+            resetFollowing.run();
+            resetFollowing = null;
+            pathStartTimes = new long[currentPathChain.size()];
+            pathStartTimes[0] = System.currentTimeMillis();
+            isBusy = true;
+            closestPose = currentPath.getClosestPoint(poseUpdater.getPose(), constants.BEZIER_CURVE_SEARCH_LIMIT);
+        }
+    }
+
+    /**
+     * Pauses pathing, can only be restarted with resumePathFollowing
+     */
+    public void pausePathFollowing() {
+        isBusy = false;
+
+        boolean prevHoldEnd = holdPositionAtEnd;
+
+        if (followingPathChain && currentPathChain != null) {
+            PathChain lastChain = currentPathChain;
+            int lastIndex = chainIndex;
+
+            resetFollowing = () -> {
+                followingPathChain = true;
+                chainIndex = lastIndex;
+                currentPathChain = lastChain;
+                holdPositionAtEnd = prevHoldEnd;
+                currentPath = currentPathChain.getPath(lastIndex);
+            };
+        } else if (currentPath != null) {
+            Path lastPath = currentPath;
+
+            resetFollowing = () -> {
+                holdPositionAtEnd = prevHoldEnd;
+                currentPath = lastPath;
+            };
+        }
+
+        holdPoint(getPose());
     }
 
     /**
