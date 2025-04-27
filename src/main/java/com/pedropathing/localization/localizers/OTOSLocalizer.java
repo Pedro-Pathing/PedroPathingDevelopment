@@ -1,43 +1,42 @@
 package com.pedropathing.localization.localizers;
 
-import com.pedropathing.localization.SparkFunOTOSCorrected;
-import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.localization.Pose;
+import com.pedropathing.localization.SparkFunOTOSCorrected;
+import com.pedropathing.localization.constants.OTOSConstants;
 import com.pedropathing.pathgen.MathFunctions;
 import com.pedropathing.pathgen.Vector;
-import static com.pedropathing.localization.constants.OTOSConstants.*;
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 /**
  * This is the OTOSLocalizer class. This class extends the Localizer superclass and is a
  * localizer that uses the SparkFun OTOS. The diagram below, which is modified from
  * Road Runner, shows a typical set up.
- *
+ * <p>
  * The view is from the top of the robot looking downwards.
- *
+ * <p>
  * left on robot is the y positive direction
- *
+ * <p>
  * forward on robot is the x positive direction
- *
- *                         forward (x positive)
- *                                △
- *                                |
- *                                |
- *                         /--------------\
- *                         |              |
- *                         |              |
- *                         | ||        || |
- *  left (y positive) <--- | ||        || |  
- *                         |     ____     |
- *                         |     ----     |
- *                         \--------------/
+ * <p>
+ * forward (x positive)
+ * △
+ * |
+ * |
+ * /--------------\
+ * |              |
+ * |              |
+ * | ||        || |
+ * left (y positive) <--- | ||        || |
+ * |     ____     |
+ * |     ----     |
+ * \--------------/
  *
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 7/20/2024
  */
-public class OTOSLocalizer extends Localizer {
+public class OTOSLocalizer implements Localizer {
     private HardwareMap hardwareMap;
     private Pose startPose;
     private SparkFunOTOS otos;
@@ -47,38 +46,41 @@ public class OTOSLocalizer extends Localizer {
     private double previousHeading;
     private double totalHeading;
 
+    private final OTOSConstants constants;
+
     /**
      * This creates a new OTOSLocalizer from a HardwareMap, with a starting Pose at (0,0)
      * facing 0 heading.
      *
      * @param map the HardwareMap
      */
-    public OTOSLocalizer(HardwareMap map) {
-        this(map, new Pose());
+    public OTOSLocalizer(HardwareMap map, OTOSConstants constants) {
+        this(map, new Pose(), constants);
     }
 
     /**
      * This creates a new OTOSLocalizer from a HardwareMap and a Pose, with the Pose
      * specifying the starting pose of the localizer.
      *
-     * @param map the HardwareMap
+     * @param map          the HardwareMap
      * @param setStartPose the Pose to start from
      */
 
-    public OTOSLocalizer(HardwareMap map, Pose setStartPose) {
+    public OTOSLocalizer(HardwareMap map, Pose setStartPose, OTOSConstants constants) {
         hardwareMap = map;
+        this.constants = constants;
 
-        if(useCorrectedOTOSClass) {
-            otos = hardwareMap.get(SparkFunOTOSCorrected.class, hardwareMapName);
+        if (constants.useCorrectedOTOSClass) {
+            otos = hardwareMap.get(SparkFunOTOSCorrected.class, constants.hardwareMapName);
         } else {
-            otos = hardwareMap.get(SparkFunOTOS.class, hardwareMapName);
+            otos = hardwareMap.get(SparkFunOTOS.class, constants.hardwareMapName);
         }
 
-        otos.setLinearUnit(linearUnit);
-        otos.setAngularUnit(angleUnit);
-        otos.setOffset(offset);
-        otos.setLinearScalar(linearScalar);
-        otos.setAngularScalar(angularScalar);
+        otos.setLinearUnit(constants.linearUnit);
+        otos.setAngularUnit(constants.angleUnit);
+        otos.setOffset(constants.offset);
+        otos.setLinearScalar(constants.linearScalar);
+        otos.setAngularScalar(constants.angularScalar);
 
         otos.calibrateImu();
         otos.resetTracking();
@@ -95,7 +97,6 @@ public class OTOSLocalizer extends Localizer {
     }
 
 
-
     /**
      * This returns the current pose estimate.
      *
@@ -108,7 +109,8 @@ public class OTOSLocalizer extends Localizer {
         Vector vec = pose.getVector();
         vec.rotateVector(startPose.getHeading());
 
-        return MathFunctions.addPoses(startPose, new Pose(vec.getXComponent(), vec.getYComponent(), pose.getHeading()));
+        return MathFunctions.addPoses(startPose,
+                new Pose(vec.getXComponent(), vec.getYComponent(), pose.getHeading()));
     }
 
     /**
@@ -152,7 +154,9 @@ public class OTOSLocalizer extends Localizer {
     public void setPose(Pose setPose) {
         resetOTOS();
         Pose setOTOSPose = MathFunctions.subtractPoses(setPose, startPose);
-        otos.setPosition(new SparkFunOTOS.Pose2D(setOTOSPose.getX(), setOTOSPose.getY(), setOTOSPose.getHeading()));
+        otos.setPosition(new SparkFunOTOS.Pose2D(setOTOSPose.getX(),
+                setOTOSPose.getY(),
+                setOTOSPose.getHeading()));
     }
 
     /**
@@ -160,7 +164,7 @@ public class OTOSLocalizer extends Localizer {
      */
     @Override
     public void update() {
-        otos.getPosVelAcc(otosPose,otosVel,otosAcc);
+        otos.getPosVelAcc(otosPose, otosVel, otosAcc);
         totalHeading += MathFunctions.getSmallestAngleDifference(otosPose.h, previousHeading);
         previousHeading = otosPose.h;
     }
@@ -174,7 +178,8 @@ public class OTOSLocalizer extends Localizer {
 
     /**
      * This returns how far the robot has turned in radians, in a number not clamped between 0 and
-     * 2 * pi radians. This is used for some tuning things and nothing actually within the following.
+     * 2 * pi radians. This is used for some tuning things and nothing actually within the
+     * following.
      *
      * @return returns how far the robot has turned in total, in radians.
      */
@@ -205,7 +210,8 @@ public class OTOSLocalizer extends Localizer {
     }
 
     /**
-     * This returns the multiplier applied to turning movement measurement to convert from OTOS ticks
+     * This returns the multiplier applied to turning movement measurement to convert from OTOS
+     * ticks
      * to radians. This is found empirically through a tuner.
      *
      * @return returns the turning ticks to radians multiplier
@@ -226,6 +232,7 @@ public class OTOSLocalizer extends Localizer {
      * @return returns whether the robot's position is NaN
      */
     public boolean isNAN() {
-        return Double.isNaN(getPose().getX()) || Double.isNaN(getPose().getY()) || Double.isNaN(getPose().getHeading());
+        return Double.isNaN(getPose().getX()) || Double.isNaN(getPose().getY()) || Double.isNaN(
+                getPose().getHeading());
     }
 }

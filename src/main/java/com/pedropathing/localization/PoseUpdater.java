@@ -1,37 +1,28 @@
 package com.pedropathing.localization;
-import static com.pedropathing.follower.FollowerConstants.localizers;
 
-import com.pedropathing.util.Constants;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IMU;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import com.pedropathing.localization.localizers.DriveEncoderLocalizer;
-import com.pedropathing.localization.localizers.OTOSLocalizer;
-import com.pedropathing.localization.localizers.PinpointLocalizer;
-import com.pedropathing.localization.localizers.ThreeWheelIMULocalizer;
-import com.pedropathing.localization.localizers.ThreeWheelLocalizer;
-import com.pedropathing.localization.localizers.TwoWheelLocalizer;
 import com.pedropathing.pathgen.MathFunctions;
 import com.pedropathing.pathgen.Vector;
+import com.qualcomm.robotcore.hardware.IMU;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 /**
- * This is the PoseUpdater class. This class handles getting pose data from the localizer and returning
+ * This is the PoseUpdater class. This class handles getting pose data from the localizer and
+ * returning
  * the information in a useful way to the Follower.
  *
  * @author Anyi Lin - 10158 Scott's Bots
  * @author Aaron Yang - 10158 Scott's Bots
  * @author Harrison Womack - 10158 Scott's Bots
- * @author  Baron Henderson - 20077 The Indubitables
+ * @author Baron Henderson - 20077 The Indubitables
  * @version 1.0, 3/4/2024
  */
 public class PoseUpdater {
-    private HardwareMap hardwareMap;
-
     private IMU imu;
 
     private Localizer localizer;
 
-    private Pose startingPose = new Pose(0,0,0);
+    private Pose startingPose = new Pose(0, 0, 0);
 
     private Pose currentPose = startingPose;
 
@@ -54,83 +45,13 @@ public class PoseUpdater {
      * Creates a new PoseUpdater from a HardwareMap and a Localizer.
      *
      * @param hardwareMap the HardwareMap
-     * @param localizer the Localizer
-     * @param FConstants the constants for the Follower
-     * @param LConstants the constants for the Localizer
+     * @param localizer   the Localizer
+     * @param FConstants  the constants for the Follower
+     * @param LConstants  the constants for the Localizer
      */
-    public PoseUpdater(HardwareMap hardwareMap, Localizer localizer, Class<?> FConstants, Class<?> LConstants) {
-        Constants.setConstants(FConstants, LConstants);
-
-        this.hardwareMap = hardwareMap;
+    public PoseUpdater(Localizer localizer) {
         this.localizer = localizer;
-
-        if (localizer.getClass() != PinpointLocalizer.class) {
-            try {
-                localizer.resetIMU();
-            } catch (InterruptedException ignored) {
-            }
-        }
-
         imu = localizer.getIMU();
-    }
-
-    /**
-     * Creates a new PoseUpdater from a HardwareMap.
-     *
-     * @param hardwareMap the HardwareMap
-     * @param FConstants the constants for the Follower
-     * @param LConstants the constants for the Localizer
-     */
-    public PoseUpdater(HardwareMap hardwareMap, Class<?> FConstants, Class<?> LConstants) {
-        this(hardwareMap, createLocalizer(hardwareMap), FConstants, LConstants);
-    }
-
-    /**
-     * Creates a new PoseUpdater from a HardwareMap and a Localizer.
-     *
-     * @param hardwareMap the HardwareMap
-     * @param localizer the Localizer
-     */
-    public PoseUpdater(HardwareMap hardwareMap, Localizer localizer) {
-        this.hardwareMap = hardwareMap;
-        this.localizer = localizer;
-
-        if (localizer.getClass() != PinpointLocalizer.class) {
-            try {
-                localizer.resetIMU();
-            } catch (InterruptedException ignored) {
-            }
-        }
-
-        imu = localizer.getIMU();
-    }
-
-    /**
-     * Creates a new PoseUpdater from a HardwareMap.
-     *
-     * @param hardwareMap the HardwareMap
-     */
-    public PoseUpdater(HardwareMap hardwareMap) {
-        this(hardwareMap, createLocalizer(hardwareMap));
-    }
-
-    private static Localizer createLocalizer(HardwareMap hardwareMap) {
-        switch (localizers) {
-            case DRIVE_ENCODERS:
-                return new DriveEncoderLocalizer(hardwareMap);
-            case TWO_WHEEL:
-                return new TwoWheelLocalizer(hardwareMap);
-            case THREE_WHEEL:
-                return new ThreeWheelLocalizer(hardwareMap);
-            case THREE_WHEEL_IMU:
-                return new ThreeWheelIMULocalizer(hardwareMap);
-            case OTOS:
-                return new OTOSLocalizer(hardwareMap);
-            case PINPOINT:
-                return new PinpointLocalizer(hardwareMap);
-            default:
-                throw new IllegalArgumentException("Unsupported localizer type");
-        }
     }
 
 
@@ -167,14 +88,15 @@ public class PoseUpdater {
      * This sets the current pose, using offsets. Think of using offsets as setting trim in an
      * aircraft. This can be reset as well, so beware of using the resetOffset() method.
      *
-     *
      * @param set The pose to set the current pose to.
      */
     public void setCurrentPoseWithOffset(Pose set) {
         Pose currentPose = getRawPose();
         setXOffset(set.getX() - currentPose.getX());
         setYOffset(set.getY() - currentPose.getY());
-        setHeadingOffset(MathFunctions.getTurnDirection(currentPose.getHeading(), set.getHeading()) * MathFunctions.getSmallestAngleDifference(currentPose.getHeading(), set.getHeading()));
+        setHeadingOffset(MathFunctions.getTurnDirection(currentPose.getHeading(),
+                set.getHeading()) * MathFunctions.getSmallestAngleDifference(currentPose.getHeading(),
+                set.getHeading()));
     }
 
     /**
@@ -238,7 +160,9 @@ public class PoseUpdater {
      * @return This returns a new Pose with the offset applied.
      */
     public Pose applyOffset(Pose pose) {
-        return new Pose(pose.getX()+xOffset, pose.getY()+yOffset, pose.getHeading()+headingOffset);
+        return new Pose(pose.getX() + xOffset,
+                pose.getY() + yOffset,
+                pose.getHeading() + headingOffset);
     }
 
     /**
@@ -269,7 +193,8 @@ public class PoseUpdater {
     }
 
     /**
-     * This returns the current raw pose, without any offsets applied. If this is called multiple times in
+     * This returns the current raw pose, without any offsets applied. If this is called multiple
+     * times in
      * a single update, the current pose is cached so that subsequent calls don't have to repeat
      * localizer calls or calculations.
      *
@@ -324,8 +249,10 @@ public class PoseUpdater {
     public Vector getVelocity() {
         if (currentVelocity == null) {
 //            currentVelocity = new Vector();
-//            currentVelocity.setOrthogonalComponents(getPose().getX() - previousPose.getX(), getPose().getY() - previousPose.getY());
-//            currentVelocity.setMagnitude(MathFunctions.distance(getPose(), previousPose) / ((currentPoseTime - previousPoseTime) / Math.pow(10.0, 9)));
+//            currentVelocity.setOrthogonalComponents(getPose().getX() - previousPose.getX(),
+//            getPose().getY() - previousPose.getY());
+//            currentVelocity.setMagnitude(MathFunctions.distance(getPose(), previousPose) / (
+//            (currentPoseTime - previousPoseTime) / Math.pow(10.0, 9)));
             currentVelocity = localizer.getVelocityVector();
             return MathFunctions.copyVector(currentVelocity);
         } else {
@@ -339,7 +266,10 @@ public class PoseUpdater {
      * @return returns the angular velocity of the robot.
      */
     public double getAngularVelocity() {
-        return MathFunctions.getTurnDirection(previousPose.getHeading(), getPose().getHeading()) * MathFunctions.getSmallestAngleDifference(getPose().getHeading(), previousPose.getHeading()) / ((currentPoseTime-previousPoseTime)/Math.pow(10.0, 9));
+        return MathFunctions.getTurnDirection(previousPose.getHeading(),
+                getPose().getHeading()) * MathFunctions.getSmallestAngleDifference(getPose().getHeading(),
+                previousPose.getHeading()) / ((currentPoseTime - previousPoseTime) / Math.pow(10.0,
+                9));
     }
 
     /**
@@ -352,7 +282,9 @@ public class PoseUpdater {
     public Vector getAcceleration() {
         if (currentAcceleration == null) {
             currentAcceleration = MathFunctions.subtractVectors(getVelocity(), previousVelocity);
-            currentAcceleration.setMagnitude(currentAcceleration.getMagnitude() / ((currentPoseTime - previousPoseTime) / Math.pow(10.0, 9)));
+            currentAcceleration.setMagnitude(currentAcceleration.getMagnitude() / ((currentPoseTime - previousPoseTime) / Math.pow(
+                    10.0,
+                    9)));
             return MathFunctions.copyVector(currentAcceleration);
         } else {
             return MathFunctions.copyVector(currentAcceleration);
@@ -364,7 +296,9 @@ public class PoseUpdater {
      */
     public void resetHeadingToIMU() {
         if (imu != null) {
-            localizer.setPose(new Pose(getPose().getX(), getPose().getY(), getNormalizedIMUHeading() + startingPose.getHeading()));
+            localizer.setPose(new Pose(getPose().getX(),
+                    getPose().getY(),
+                    getNormalizedIMUHeading() + startingPose.getHeading()));
         }
     }
 
@@ -375,7 +309,9 @@ public class PoseUpdater {
      */
     public void resetHeadingToIMUWithOffsets() {
         if (imu != null) {
-            setCurrentPoseWithOffset(new Pose(getPose().getX(), getPose().getY(), getNormalizedIMUHeading() + startingPose.getHeading()));
+            setCurrentPoseWithOffset(new Pose(getPose().getX(),
+                    getPose().getY(),
+                    getNormalizedIMUHeading() + startingPose.getHeading()));
         }
     }
 
@@ -386,7 +322,8 @@ public class PoseUpdater {
      */
     public double getNormalizedIMUHeading() {
         if (imu != null) {
-            return MathFunctions.normalizeAngle(-imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+            return MathFunctions.normalizeAngle(-imu.getRobotYawPitchRollAngles()
+                    .getYaw(AngleUnit.RADIANS));
         }
         return 0;
     }
