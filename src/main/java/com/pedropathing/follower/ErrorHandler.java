@@ -79,7 +79,7 @@ public class ErrorHandler {
         driveKalmanFilter = new KalmanFilter(constants.driveKalmanFilterParameters);
     }
 
-    public void update(NewFollower follower) {
+    public void update(Follower follower) {
         this.useDrive = follower.getUseDrive();
         this.useHeading = follower.getUseHeading();
         this.useTranslational = follower.getUseTranslational();
